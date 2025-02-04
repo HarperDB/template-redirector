@@ -1,0 +1,10 @@
+utcStartTime,utcEndTime,path,redirectURL,statusCode
+,,/shop/live-shopping,/s/events,301
+,,/p/shirts/,/shop/mens-clothing/shirts?id=1234,301
+,,/p/shirts/help/,/info/finding-the-perfect-shirt,301
+,,/p/shirts/help/iron/,/info/care?id=1234,301
+,,/p/shirts/help/wash/,/info/care?id=1235
+,,/p/makeup/,/shop/makeup-and-perfume,301
+,,/p/shoes/,/shop/shoes?id=1236,301
+,,/p/shoes/flats/,/shop/shoes/flats,301
+,,/p/dresses/,/shop/dresses/,301

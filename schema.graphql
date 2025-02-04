@@ -1,0 +1,23 @@
+# Redirect rule table
+type rule @table(database: "redirects") @export {
+    # Unique identifier for the rule
+    id: ID @primaryKey
+
+    # UTC timestamp for when the rule becomes active (optional)
+    utcStartTime: Float
+
+    # UTC timestamp for when the rule becomes inactive (optional)
+    utcEndTime: Float
+
+    # The path of the incoming URL to match (indexed for faster lookups)
+    path: String @indexed
+
+    # The URL to redirect to (indexed for faster lookups)
+    redirectURL: String @indexed
+
+    # The HTTP status code to use for the redirect (e.g., 301, 302)
+    statusCode: Int
+
+    # Timestamp of when this rule was last accessed (indexed for analytics purposes)
+    lastAccessed: Date @indexed
+}
