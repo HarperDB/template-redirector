@@ -1,5 +1,8 @@
 # [Customer] Redirector
 
+There has been [work](https://github.com/HarperDB/Component-ReadMe-Template/blob/main/component-readme-template.md) started to document external component.  
+This documetn has not yet integrated those ideas.  But it should.
+
 ## Overview
 
 The Redirector is a HarperDB component designed to enhance and scale the 
@@ -11,7 +14,6 @@ of redirects, offering improved performance and scalability.
 > [!NOTE]
 > Do we want to reference the Akamai component here?  This really is a standalone component
 
-There has been [work]https://github.com/HarperDB/Component-ReadMe-Template/blob/main/component-readme-template.md started to document external component. 
 
 ## Features
 
