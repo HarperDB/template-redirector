@@ -1,0 +1,250 @@
+import 'dotenv/config'
+
+const HOST = process.env.HOST
+const SCHEME = process.env.SCHEME
+
+import { describe, it } from "node:test"
+import assert from "node:assert"
+
+import fs from 'fs'
+
+const csvfile = 'data/example.csv'
+const jsonfile = 'data/example.json'
+
+
+const csv_content = fs.readFileSync( csvfile, 'utf8' )
+const json_content = fs.readFileSync( jsonfile, 'utf8' )
+const check_path = '/p/shoes/'
+const check_result = '/shop/shoes?id=1236'
+
+const clearTable = async ( table ) => {
+
+  const url = `${SCHEME}://${HOST}/${table}/?path==*`
+
+  try {
+    const options = {
+      method: "DELETE",
+    }
+    const resp = await fetch( url, options )
+    return true
+  }
+  catch( e ) {
+    return false
+  }
+}
+
+const getItemCount = async ( table ) => {
+
+  const url = `${SCHEME}://${HOST}/${table}`
+
+  try {
+    const options = {
+      method: "GET",
+    }
+    const resp = await fetch( url, options )
+    const data = await resp.json()
+    return data.recordCount
+  }
+  catch( e ) {
+    return -1
+  }
+
+}
+
+
+describe( "Clear the entries", () => {
+  it( "Should execute a successful DELETE request", async () => {
+    assert.ok( await clearTable( 'rule' ) )
+  })
+
+  it( "Should have zero items now", async () => {
+    assert.equal( await getItemCount( 'rule' ), 0 )
+  })
+})
+
+describe("Load entries into the redirect table via CSV", () => {
+
+  var data
+  var resp
+  
+  it( "Should execute a successful HTTP request", async () => {
+
+    const url = `${SCHEME}://${HOST}/redirect`
+
+    try {
+      const options = {
+        method: "POST",
+        headers: {
+          "Content-type": "text/csv"
+        },
+        body: csv_content
+      }
+      resp = await fetch( url, options )
+      data = await resp.json()
+      assert.ok( true )
+    }
+    catch( e ) {
+      assert.ok( false )
+    }
+  })
+
+
+  it('It should have a 200 response', () => {
+    assert.strictEqual( resp.status, 200 )
+  })
+
+  it('It should return that 9 entries were added', () => {
+    assert.strictEqual( data.message, "Successfully loaded 9 redirects." )
+  })
+
+  it( "Should have nine items now", async () => {
+    assert.equal( await getItemCount( 'rule' ), 9 )
+  })
+
+})
+
+describe( "Clear the entries", () => {
+  it( "Should execute a successful DELETE request", async () => {
+    assert.ok( await clearTable( 'rule' ) )
+  })
+  it( "Should have zero items now", async () => {
+    assert.equal( await getItemCount( 'rule' ), 0 )
+  })
+})
+
+describe("Load entries into the redirect table via JSON", () => {
+
+  var data
+  var resp
+  
+  it( "Should execute a successful HTTP request", async () => {
+
+    const url = `${SCHEME}://${HOST}/redirect`
+
+    try {
+      const options = {
+        method: "POST",
+        headers: {
+          "Content-type": "application/json"
+        },
+        body: json_content
+      }
+      resp = await fetch( url, options )
+      data = await resp.json()
+      assert.ok( true )
+    }
+    catch( e ) {
+      assert.ok( false )
+    }
+  })
+
+
+  it('It should have a 200 response', () => {
+    assert.strictEqual( resp.status, 200 )
+  })
+
+  it('It should return that 9 entries were added', () => {
+    assert.strictEqual( data.message, "Successfully loaded 9 redirects." )
+  })
+
+  it( "Should have nine items now", async () => {
+    assert.equal( await getItemCount( 'rule' ), 9 )
+  })
+})
+
+
+describe("Check if a redirect exists and is correct using the query string", () => {
+
+  var resp;
+  var data;
+
+  it('GET should succeed', async () => {
+    const url = `${SCHEME}://${HOST}/checkredirect?path=${check_path}`
+    const options = { method: "GET" }
+
+    resp = await fetch( url, options )
+    data = await resp.json()
+
+    assert.equal( resp.status, 200 )
+  })
+  
+  it('Redirect should be correct', async () => {
+    assert.equal( data.redirectURL, '/shop/shoes?id=1236' )
+  })
+  
+  it('Status code should be correct', async () => {
+    assert.equal( data.statusCode, 301 )
+  })
+})
+
+describe("Check if a redirect exists and is correct using the Path header", () => {
+
+  var resp;
+  var data;
+
+
+  it('GET should succeed', async () => {
+    const url = `${SCHEME}://${HOST}/checkredirect`
+    const options = {
+      method: "GET",
+      headers: {
+        "Path": check_path
+      }
+    }
+
+    resp = await fetch( url, options )
+    data = await resp.json()
+    
+    assert.equal( resp.status, 200 )
+  })
+
+  it('Redirect should be correct', async () => {
+    assert.equal( data.redirectURL, '/shop/shoes?id=1236' )
+  })
+  
+  it('Status code should be correct', async () => {
+    assert.equal( data.statusCode, 301 )
+  })
+})
+
+
+describe("Check if a redirect does not exists using the query string", () => {
+  it('It should return a 404', async () => {
+    const url = `${SCHEME}://${HOST}/checkredirect?path=xxx`
+    const options = { method: "GET" }
+
+    const resp = await fetch( url, options )
+
+    assert.equal( resp.status, 404 )
+  })
+})
+
+describe("Check if a redirect does not exists using the Path header", () => {
+
+  it('It should return a 404 and the redirect data', async () => {
+
+    const url = `${SCHEME}://${HOST}/checkredirect`
+
+    const options = {
+      method: "GET",
+      headers: {
+        "Path": "xxx"
+      }
+    }
+
+    const resp = await fetch( url, options )
+
+    assert.equal( resp.status, 404 )
+  })
+})
+
+describe( "Clear the entries", () => {
+  it( "Should execute a successful DELETE request", async () => {
+    assert.ok( await clearTable( 'rule' ) )
+  })
+  it( "Should have zero items now", async () => {
+    assert.equal( await getItemCount( 'rule' ), 0 )
+  })
+})
+
+

@@ -15,6 +15,7 @@ export class redirect extends databases.redirects.rule {
 	 */
 	async post(data) {
 
+
     const json = Papa.parse(data.data, {
 			header: true,
 			skipEmptyLines: true
@@ -36,18 +37,24 @@ export class redirect extends databases.redirects.rule {
 	async processRedirects(redirects) {
 		let success = 0;
 		const skipped = [];
+    const nredirects = redirects.length
 
-		for (const item of redirects) {
+    for ( const [index, item] of redirects.entries() ) {
 
       
 			if (!this.validateRedirect(item, skipped)) continue;
-
+      
 			item.redirectURL = this.stripDomain(item.redirectURL);
-
+      
 			const postObject = this.createPostObject(item);
-
+	
 			try {
-				await databases.redirects.rule.post(postObject);
+        if ( index == nredirects - 1 ) {
+			    await databases.redirects.rule.post(postObject);
+        }
+        else {
+			    databases.redirects.rule.post(postObject);
+        }
 				success++;
 			} catch (e) {
 				skipped.push({ reason: e.message, item });
