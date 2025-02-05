@@ -11,6 +11,8 @@ of redirects, offering improved performance and scalability.
 > [!NOTE]
 > Do we want to reference the Akamai component here?  This really is a standalone component
 
+There has been [work]https://github.com/HarperDB/Component-ReadMe-Template/blob/main/component-readme-template.md started to document external component. 
+
 ## Features
 
 - CSV-based redirect rule import
@@ -69,6 +71,9 @@ by using the Harper REST API against the tables.
 The application records metrics associated with the redirect action, accessible via the `/redirectmetrics` endpoint.
 
 ## Usage
+
+> [!NOTE]
+> Adding a link to a postman connection, even an export could be very useful
 
 ### Importing Redirects
 
