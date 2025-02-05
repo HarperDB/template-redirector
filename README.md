@@ -177,7 +177,7 @@ DELETE /rule/?property=value
 
 ## [Customer] Infrastructure
 
-> ![NOTE]
+> [!NOTE]
 > This section is unnecessary for an external component
 
 ### Pilot Environment
