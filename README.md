@@ -156,30 +156,44 @@ The `rule` table in the `redirects` database stores redirect entries with the fo
 
 ## Harper Endpoints
 
+The Harper REST API give low level control over your data.  The above calls are component level and provide higher
+level functionality. For a full description of what the REST API can do and how to use if your can refer to
+its [documentaion](https://docs.harperdb.io/docs/developers/rest)
+
 > [!NOTE]
 > These are all generic Harper REST calls. I think it is important to complete the CRUD picture showing how to manage the data here.
-> The calls are not complete. Merely placeholders at the moment
+> These are starting points to give a feel for what the REST API can to do complete the picture
 
 ### Create
 
 ```
-POST /rule         
+POST /rule
+Content-type: application/json
+Content-length: <CL of body>
+
+{"path":"/foo","redirectURL":"/bar","statusCode":304}        
 ```
 
 ### Read
 ```
-GET /rule/[ID]
+GET /rule/35a1cb2d-5c99-4172-9e3c-c40639d138b5
+GET /rule/?path=/d/shoes/
 ```
 
 ### Update
 ```
-PUT /rule/[ID]
+PUT /rule/35a1cb2d-5c99-4172-9e3c-c40639d138b5
+Content-type: application/json
+Content-length: <CL of body>
+
+{"path":"/p/shoes/","redirectURL":"/shop/shoes?id=1236","statusCode":304'}
 ```
 
 ### Delete
 ```
-DELETE /rule/[ID]
-DELETE /rule/?property=value
+DELETE /rule/35a1cb2d-5c99-4172-9e3c-c40639d138b5
+DELETE /rule/?path=/p/shoes/
+DELETE /rule/?path==*
 ```
 
 ## Testing
