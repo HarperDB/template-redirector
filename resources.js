@@ -167,6 +167,7 @@ export class checkredirect extends Resource {
 	 */
 	isRedirectValid(redirect) {
 		const now = Date.now();
+    
 		return (!redirect.utcStartTime || now >= redirect.utcStartTime) &&
 			(!redirect.utcEndTime || now <= redirect.utcEndTime);
 	}

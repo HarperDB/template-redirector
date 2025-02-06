@@ -1,21 +1,31 @@
 import 'dotenv/config'
-
-const HOST = process.env.HOST
-const SCHEME = process.env.SCHEME
-
 import { describe, it } from "node:test"
 import assert from "node:assert"
-
 import fs from 'fs'
+
+const HOST     = process.env.HOST
+const SCHEME   = process.env.SCHEME
+const AUTH     = process.env.AUTH
+const USERNAME = process.env.USERNAME
+const PASSWORD = process.env.PASSWORD
+const TOKEN    = Buffer.from( `${USERNAME}:${PASSWORD}` ).toString('base64');
 
 const csvfile = 'data/example.csv'
 const jsonfile = 'data/example.json'
-
-
 const csv_content = fs.readFileSync( csvfile, 'utf8' )
 const json_content = fs.readFileSync( jsonfile, 'utf8' )
+
 const check_path = '/p/shoes/'
 const check_result = '/shop/shoes?id=1236'
+
+const fetch_wrapper = async ( url, options ) => {
+  if ( AUTH === "true" ) {
+    options.headers ??= {}
+    options.headers.Authorization = `Basic ${TOKEN}`
+  }
+
+  return await fetch( url, options )
+}
 
 const clearTable = async ( table ) => {
 
@@ -25,7 +35,7 @@ const clearTable = async ( table ) => {
     const options = {
       method: "DELETE",
     }
-    const resp = await fetch( url, options )
+    const resp = await fetch_wrapper( url, options )
     return true
   }
   catch( e ) {
@@ -41,7 +51,7 @@ const getItemCount = async ( table ) => {
     const options = {
       method: "GET",
     }
-    const resp = await fetch( url, options )
+    const resp = await fetch_wrapper( url, options )
     const data = await resp.json()
     return data.recordCount
   }
@@ -79,7 +89,7 @@ describe("Load entries into the redirect table via CSV", () => {
         },
         body: csv_content
       }
-      resp = await fetch( url, options )
+      resp = await fetch_wrapper( url, options )
       data = await resp.json()
       assert.ok( true )
     }
@@ -129,7 +139,7 @@ describe("Load entries into the redirect table via JSON", () => {
         },
         body: json_content
       }
-      resp = await fetch( url, options )
+      resp = await fetch_wrapper( url, options )
       data = await resp.json()
       assert.ok( true )
     }
@@ -162,7 +172,7 @@ describe("Check if a redirect exists and is correct using the query string", () 
     const url = `${SCHEME}://${HOST}/checkredirect?path=${check_path}`
     const options = { method: "GET" }
 
-    resp = await fetch( url, options )
+    resp = await fetch_wrapper( url, options )
     data = await resp.json()
 
     assert.equal( resp.status, 200 )
@@ -192,7 +202,7 @@ describe("Check if a redirect exists and is correct using the Path header", () =
       }
     }
 
-    resp = await fetch( url, options )
+    resp = await fetch_wrapper( url, options )
     data = await resp.json()
     
     assert.equal( resp.status, 200 )
@@ -213,7 +223,7 @@ describe("Check if a redirect does not exists using the query string", () => {
     const url = `${SCHEME}://${HOST}/checkredirect?path=xxx`
     const options = { method: "GET" }
 
-    const resp = await fetch( url, options )
+    const resp = await fetch_wrapper( url, options )
 
     assert.equal( resp.status, 404 )
   })
@@ -232,11 +242,105 @@ describe("Check if a redirect does not exists using the Path header", () => {
       }
     }
 
-    const resp = await fetch( url, options )
+    const resp = await fetch_wrapper( url, options )
 
     assert.equal( resp.status, 404 )
   })
 })
+
+
+describe("Update a record with start and end times and retrieve", () => {
+
+  var id;
+  
+  it('Should get the ID of the record we want to update', async () => {
+
+    const url = `${SCHEME}://${HOST}/checkredirect?path=${check_path}`
+    const options = { method: "GET" }
+
+    const resp = await fetch_wrapper( url, options )
+    const data = await resp.json()
+
+    id = data.id;
+
+    assert.equal( resp.status, 200 )
+
+  })
+
+  it ( 'Update time span for now. PUT should get a 204.', async () => {
+
+    const now = Date.now();
+    const hour = 3600 * 1000;
+    
+    const url = `${SCHEME}://${HOST}/rule/${id}`
+    const options = {
+      method: "PUT",
+      headers: {
+        'Content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        path: check_path,
+        redirectURL: check_result,
+        statusCode: 301,
+        utcStartTime: now - hour,
+        utcEndTime: now + hour
+      })
+    }
+    
+    const resp = await fetch_wrapper( url, options )
+
+    assert.equal( resp.status, 204 )
+  })
+
+  it('Should get a record for our redirect', async () => {
+
+    const url = `${SCHEME}://${HOST}/checkredirect?path=${check_path}`
+    const options = { method: "GET" }
+
+    const resp = await fetch_wrapper( url, options )
+    const data = await resp.json()
+
+    assert.equal( resp.status, 200 )
+  })
+
+  it ( 'Update time span for Later. PUT should get a 204.', async () => {
+
+    const now = Date.now();
+    const hour = 3600 * 1000;
+    
+    const url = `${SCHEME}://${HOST}/rule/${id}`
+    const options = {
+      method: "PUT",
+      headers: {
+        'Content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        path: check_path,
+        redirectURL: check_result,
+        statusCode: 301,
+        utcStartTime: now + hour,
+        utcEndTime: now + (hour*2)
+      })
+    }
+    
+    const resp = await fetch_wrapper( url, options )
+
+    assert.equal( resp.status, 204 )
+  })
+
+  it('Should not get a record for our redirect', async () => {
+
+    const url = `${SCHEME}://${HOST}/checkredirect?path=${check_path}`
+    const options = { method: "GET" }
+
+    const resp = await fetch_wrapper( url, options )
+    const data = await resp.json()
+
+    assert.equal( resp.status, 404 )
+  })
+
+})
+
 
 describe( "Clear the entries", () => {
   it( "Should execute a successful DELETE request", async () => {
@@ -246,5 +350,6 @@ describe( "Clear the entries", () => {
     assert.equal( await getItemCount( 'rule' ), 0 )
   })
 })
+
 
 
