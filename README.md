@@ -182,6 +182,24 @@ DELETE /rule/[ID]
 DELETE /rule/?property=value
 ```
 
+## Testing
+
+The file `test/redirector-test.js` has regression tests with the intention of covering all of that above API calls. Run them with:
+
+```
+node --test
+```
+
+The test uses a `.env` file at the componet root for configuration:
+
+|Field|Description|
+|-----|-----------|
+|HOST|The host:port to connect to|
+|SCHEME|http or https|
+|AUTH|Should HTTP Basic auth be sent? true/false|
+|USERNAME|The username for basic auth|
+|PASSWORD|The passowrd for basic auth|
+
 ## [Customer] Infrastructure
 
 > [!NOTE]
