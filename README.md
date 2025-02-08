@@ -94,12 +94,12 @@ or
 POST /redirect
 Content-Type: application/json
 
-{ "data": "[JSON Wrapped CSV file]" }
+{ JSON Data }
 ```
 
 CSV format:
 ```
-utcStartTime,utcEndTime,path,redirectURL,statusCode
+utcStartTime,utcEndTime,path,redirectURL,host,version,statusCode
 ```
 
 Here is an example curl command to upload a CSV file:
@@ -139,10 +139,23 @@ The `rule` table in the `redirects` database stores redirect entries with the fo
 - `id`: Unique identifier (Primary Key)
 - `utcStartTime`: Activation start time (optional)
 - `utcEndTime`: Activation end time (optional)
+- `host`: The hostname to match for the redirect. '*' for a globla rule.
+- `version`: The redirect version batch (optional)
 - `path`: Incoming URL path to match
 - `redirectURL`: URL to redirect to
 - `statusCode`: HTTP status code for the redirect (default: 301)
 - `lastAccessed`: Timestamp of last access
+
+The `version` table in the `redirect` database stores the active version.  
+
+- `code`: The version code (Primary Key)
+- `utcStartTime`: The time the version should go active
+- `utcEndTime`: The time the version should become inactive
+
+The `hosts` table in the `redirect` database stores the per host information.
+
+- `host`: The version code (Primary Key)
+- `allowGlobalRules`: A boolean that determines if a rules without a hostname can be applied to this host
 
 ## API Endpoints
 
