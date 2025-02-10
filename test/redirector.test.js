@@ -113,6 +113,47 @@ describe("Load entries into the redirect table via CSV", () => {
 
 })
 
+describe("Load entries again into the redirect table via CSV to check exclusion of duplicate paths", () => {
+
+  var data
+  var resp
+  
+  it( "Should execute a successful HTTP request", async () => {
+
+    const url = `${SCHEME}://${HOST}/redirect`
+
+    try {
+      const options = {
+        method: "POST",
+        headers: {
+          "Content-type": "text/csv"
+        },
+        body: csv_content
+      }
+      resp = await fetch_wrapper( url, options )
+      data = await resp.json()
+      assert.ok( true )
+    }
+    catch( e ) {
+      assert.ok( false )
+    }
+  })
+
+
+  it('It should have a 200 response', () => {
+    assert.strictEqual( resp.status, 200 )
+  })
+
+  it('It should return that 0 entries were added', () => {
+    assert.strictEqual( data.message, "Successfully loaded 0 redirects." )
+  })
+
+  it( "Should still have nine items now", async () => {
+    assert.equal( await getItemCount( 'rule' ), 9 )
+  })
+
+})
+
 describe( "Clear the entries", () => {
   it( "Should execute a successful DELETE request", async () => {
     assert.ok( await clearTable( 'rule' ) )

@@ -15,7 +15,6 @@ export class redirect extends databases.redirects.rule {
 	 */
 	async post(data) {
 
-
     const json = Papa.parse(data.data, {
 			header: true,
 			skipEmptyLines: true
@@ -37,28 +36,35 @@ export class redirect extends databases.redirects.rule {
 	async processRedirects(redirects) {
 		let success = 0;
 		const skipped = [];
-    const nredirects = redirects.length
 
-    for ( const [index, item] of redirects.entries() ) {
-
+		for (const item of redirects) {
       
 			if (!this.validateRedirect(item, skipped)) continue;
-      
+
 			item.redirectURL = this.stripDomain(item.redirectURL);
-      
-			const postObject = this.createPostObject(item);
-	
-			try {
-        if ( index == nredirects - 1 ) {
-			    await databases.redirects.rule.post(postObject);
-        }
-        else {
-			    databases.redirects.rule.post(postObject);
-        }
-				success++;
-			} catch (e) {
-				skipped.push({ reason: e.message, item });
-			}
+
+      const query = { conditions: [{ attribute: 'path', 'value': item.path }] } 
+      const result = []
+	    for await (const record of databases.redirects.rule.search( query )) {
+		    result.push(record);
+	    }
+
+      if ( result.length != 0 ) {
+        skipped.push( { reason: "Duplicate path", item } );
+      }
+      else {
+			  const postObject = this.createPostObject(item);
+
+        console.log( postObject )
+
+
+			  try {
+				  await databases.redirects.rule.post(postObject);
+				  success++;
+			  } catch (e) {
+				  skipped.push({ reason: e.message, item });
+			  }
+      }
 		}
 
 		return { success, skipped };
@@ -167,7 +173,6 @@ export class checkredirect extends Resource {
 	 */
 	isRedirectValid(redirect) {
 		const now = Date.now();
-    
 		return (!redirect.utcStartTime || now >= redirect.utcStartTime) &&
 			(!redirect.utcEndTime || now <= redirect.utcEndTime);
 	}
@@ -204,22 +209,32 @@ export class checkredirect extends Resource {
  * Handles retrieval of redirect usage metrics.
  */
 export class redirectmetrics extends Resource {
+
+  // The default condition is to filter on the redirect metrics added in
+  // the past 90 seconds
+  baseConditions() {
+	  return [
+		  { attribute: 'metric', value: 'redirect', comparator: 'equals' },
+		  { attribute: 'id', value: [Date.now() - (90 * 1000), Date.now()], comparator: 'between' }
+	  ];
+  }
+
 	/**
 	 * Retrieves redirect metrics based on the provided query.
 	 * @param {Object} query - The query parameters for filtering metrics.
 	 * @returns {Array} An array of metric objects matching the query.
 	 */
-	async get(query) {
-		const baseConditions = [
-			{ attribute: 'metric', value: 'redirect', comparator: 'equals' },
-			{ attribute: 'id', value: [Date.now() - (90 * 1000), Date.now()], comparator: 'between' }
-		];
+  async get(query) {
+		return hdb_analytics.search({ conditions: this.baseConditions() });
+	}
 
+  async post(query) {
 		if (query?.conditions) {
-			query.conditions.push(baseConditions[0]);
+      query.conditions.push(this.baseConditions()[0]);
 			return hdb_analytics.search(query);
 		} else {
-			return hdb_analytics.search({ conditions: baseConditions });
+			return hdb_analytics.search({ conditions: this.baseConditions() });
 		}
 	}
+
 }
