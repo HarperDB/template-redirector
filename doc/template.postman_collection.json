@@ -1,0 +1,222 @@
+{
+	"info": {
+		"_postman_id": "4168a975-fe09-4d51-b70a-a3820fe3d380",
+		"name": "Redirector Temaplte",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "41168147",
+		"_collection_link": "https://harperdbio.postman.co/workspace/Customer-Projects~54c71528-7132-4d3c-8994-c1ad01c635c5/collection/41168147-4168a975-fe09-4d51-b70a-a3820fe3d380?action=share&source=collection_link&creator=41168147"
+	},
+	"item": [
+		{
+			"name": "Check Redirect - Query",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{scheme}}://{{host}}/checkredirect?path=/p/shoe-guide/",
+					"protocol": "{{scheme}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"checkredirect"
+					],
+					"query": [
+						{
+							"key": "path",
+							"value": "/p/shoe-guide/"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Query Redirect - Header",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Path",
+						"value": "/p/shoe-guide/",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{scheme}}://{{host}}/checkredirect",
+					"protocol": "{{scheme}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"checkredirect"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Add Redirects",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{ \"data\": \"utcStartTime,utcEndTime,path,redirectURL,statusCode,,,,,,,,,,,,\\n,,/shop/live-shopping,/s/events,301,,,,,,,,,,,,\\n,,/p/the-dress-shirt-manual-for-men/,/shop/mens-clothing/mens-dress-shirts?id=20635,301,,,,,,,,,,,,\\n,,/p/the-dress-shirt-manual-for-men/finding-the-perfect-dress-shirt-fit/,/shop/mens-clothing/mens-dress-shirts?id=20635,301,,,,,,,,,,,,\\n,,/p/the-dress-shirt-manual-for-men/how-to-wash-iron-dress-shirts/,/shop/mens-clothing/mens-dress-shirts?id=20635,301,,,,,,,,,,,,\\n,,/p/the-dress-shirt-manual-for-men/top-mens-designer-dress-shirts/,/shop/mens-clothing/mens-dress-shirts?id=20635,301,,,,,,,,,,,,\\n,,/p/best-selling-makeup/types-makeup-brushes,/shop/makeup-and-perfume?id=669,301,,,,,,,,,,,,\\n,,/p/shoe-guide/,/shop/shoes?id=13247,301,,,,,,,,,,,,\\n,,/p/shoe-guide/top-five-flats/,/shop/shoes/flats?id=50295,301,,,,,,,,,,,,\\n,,/p/evening-dress-code/dress-color-by-season,/,301,,,,,,,,,,,,\" }",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{scheme}}://{{host}}/redirect",
+					"protocol": "{{scheme}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"redirect"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Metrics",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{scheme}}://{{host}}/redirectmetrics",
+					"protocol": "{{scheme}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"redirectmetrics"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Redirect",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{scheme}}://{{host}}/rule/6b8ba0f9-5e04-46e9-ac15-0ae24574cdec",
+					"protocol": "{{scheme}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rule",
+						"6b8ba0f9-5e04-46e9-ac15-0ae24574cdec"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete All Redirects",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{scheme}}://{{host}}/rule/?path==*",
+					"protocol": "{{scheme}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rule",
+						""
+					],
+					"query": [
+						{
+							"key": "path",
+							"value": "=*"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get All Redirects",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{scheme}}://{{host}}/rule/",
+					"protocol": "{{scheme}}",
+					"host": [
+						"{{host}}"
+					],
+					"path": [
+						"rule",
+						""
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "{{vault:password}}",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "{{vault:username}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "host",
+			"value": "HOSTNAME",
+			"type": "string"
+		},
+		{
+			"key": "scheme",
+			"value": "https",
+			"type": "string"
+		}
+	]
+}

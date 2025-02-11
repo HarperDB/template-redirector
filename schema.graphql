@@ -12,12 +12,37 @@ type rule @table(database: "redirects") @export {
     # The path of the incoming URL to match (indexed for faster lookups)
     path: String @indexed
 
-    # The URL to redirect to (indexed for faster lookups)
-    redirectURL: String @indexed
+    # The path to redirect to (indexed for faster lookups)
+    redirectPath: String @indexed
+
+    # The host name for the redirect (optional)
+    host: String @indexed
+
+    # The version for the redirect
+    version: Int @indexed
 
     # The HTTP status code to use for the redirect (e.g., 301, 302)
     statusCode: Int
 
     # Timestamp of when this rule was last accessed (indexed for analytics purposes)
     lastAccessed: Date @indexed
+}
+
+type hosts @table(database: "redirects") @export {
+    # Unique identifier for the host entry
+    id: ID @primaryKey
+
+    # The host name for the redirect (optional)
+    host: String @indexed
+
+    # The path to redirect to (indexed for faster lookups)
+    hostOnly: Boolean
+}
+
+type version @table(database: "redirects") @export {
+    # Unique identifier for the host entry
+    id: ID @primaryKey
+
+    # The host name for the redirect (optional)
+    activeVersion: Int @indexed
 }
