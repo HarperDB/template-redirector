@@ -131,7 +131,7 @@ The full available parameters are:
 |path|String|The path portion of the redirect or the full url including scheme and hostname.  This overrides the `host` parameter|
 |h|String|Host - The hostname to match on (optional)|
 |v|Int|Version - The redirect version to match on (optional)|
-|ho|Int|hostOnly - a flag that indicates that whjen a hostname is used, and there is no match for that hostname, whether the global 'no hostname' entried should be checked|
+|ho|Int|hostOnly - a flag that indicates that whjen a hostname is used, and there is no match for that hostname, whether the global 'no hostname' entried should be checked (Optional)|
 
 For example, this query:
 ```
