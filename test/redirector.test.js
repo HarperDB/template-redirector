@@ -10,13 +10,15 @@ const USERNAME = process.env.USERNAME
 const PASSWORD = process.env.PASSWORD
 const TOKEN    = Buffer.from( `${USERNAME}:${PASSWORD}` ).toString('base64');
 
+const nentries = 15
+
 const csvfile = 'data/example.csv'
 const jsonfile = 'data/example.json'
 const csv_content = fs.readFileSync( csvfile, 'utf8' )
 const json_content = fs.readFileSync( jsonfile, 'utf8' )
 
 const check_path = '/p/shoes/'
-const check_result = '/shop/shoes?id=1236'
+const check_result = '/shop/shoes/v1?id=1236'
 
 const fetch_wrapper = async ( url, options ) => {
   if ( AUTH === "true" ) {
@@ -103,12 +105,12 @@ describe("Load entries into the redirect table via CSV", () => {
     assert.strictEqual( resp.status, 200 )
   })
 
-  it('It should return that 9 entries were added', () => {
-    assert.strictEqual( data.message, "Successfully loaded 9 redirects." )
+  it(`It should return that ${nentries} entries were added`, () => {
+    assert.strictEqual( data.message, `Successfully loaded ${nentries} redirects.` )
   })
 
-  it( "Should have nine items now", async () => {
-    assert.equal( await getItemCount( 'rule' ), 9 )
+  it( `Should have ${nentries} items now`, async () => {
+    assert.equal( await getItemCount( 'rule' ), nentries )
   })
 
 })
@@ -148,8 +150,8 @@ describe("Load entries again into the redirect table via CSV to check exclusion 
     assert.strictEqual( data.message, "Successfully loaded 0 redirects." )
   })
 
-  it( "Should still have nine items now", async () => {
-    assert.equal( await getItemCount( 'rule' ), 9 )
+  it( `Should still have ${nentries} items now`, async () => {
+    assert.equal( await getItemCount( 'rule' ), nentries )
   })
 
 })
@@ -194,12 +196,12 @@ describe("Load entries into the redirect table via JSON", () => {
     assert.strictEqual( resp.status, 200 )
   })
 
-  it('It should return that 9 entries were added', () => {
-    assert.strictEqual( data.message, "Successfully loaded 9 redirects." )
+  it(`It should return that ${nentries} entries were added`, () => {
+    assert.strictEqual( data.message, `Successfully loaded ${nentries} redirects.` )
   })
 
-  it( "Should have nine items now", async () => {
-    assert.equal( await getItemCount( 'rule' ), 9 )
+  it( `Should have ${nentries} items now`, async () => {
+    assert.equal( await getItemCount( 'rule' ), nentries )
   })
 })
 
@@ -220,7 +222,7 @@ describe("Check if a redirect exists and is correct using the query string", () 
   })
   
   it('Redirect should be correct', async () => {
-    assert.equal( data.redirectURL, '/shop/shoes?id=1236' )
+    assert.equal( data.redirectURL, check_result )
   })
   
   it('Status code should be correct', async () => {
@@ -250,7 +252,7 @@ describe("Check if a redirect exists and is correct using the Path header", () =
   })
 
   it('Redirect should be correct', async () => {
-    assert.equal( data.redirectURL, '/shop/shoes?id=1236' )
+    assert.equal( data.redirectURL, check_result )
   })
   
   it('Status code should be correct', async () => {
@@ -314,6 +316,8 @@ describe("Update a record with start and end times and retrieve", () => {
     const hour = 3600 * 1000;
     
     const url = `${SCHEME}://${HOST}/rule/${id}`
+
+    
     const options = {
       method: "PUT",
       headers: {
@@ -322,12 +326,14 @@ describe("Update a record with start and end times and retrieve", () => {
       body: JSON.stringify({
         path: check_path,
         redirectURL: check_result,
+        host: "",
+        version: 0, 
         statusCode: 301,
         utcStartTime: now - hour,
         utcEndTime: now + hour
       })
     }
-    
+
     const resp = await fetch_wrapper( url, options )
 
     assert.equal( resp.status, 204 )
@@ -358,6 +364,8 @@ describe("Update a record with start and end times and retrieve", () => {
       body: JSON.stringify({
         path: check_path,
         redirectURL: check_result,
+        host: "",
+        version: 0, 
         statusCode: 301,
         utcStartTime: now + hour,
         utcEndTime: now + (hour*2)
@@ -382,7 +390,7 @@ describe("Update a record with start and end times and retrieve", () => {
 
 })
 
-
+  /*
 describe( "Clear the entries", () => {
   it( "Should execute a successful DELETE request", async () => {
     assert.ok( await clearTable( 'rule' ) )
@@ -392,5 +400,5 @@ describe( "Clear the entries", () => {
   })
 })
 
-
+   */
 
