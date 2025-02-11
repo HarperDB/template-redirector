@@ -112,7 +112,7 @@ Note the use of `--data-binary`.  The `-d` switch will strip the newlines from y
 
 ### Checking Redirects
 
-To check if a URL has a redirect:
+To do a simple check if a URL has a redirect:
 
 ```
 GET /checkredirect
@@ -123,6 +123,30 @@ or
 ```
 GET /checkredirect?path=/your/path
 ```
+
+The full available parameters are:
+
+|name|type|description|
+|----|----|-----------|
+|path|String|The path portion of the redirect or the full url including scheme and hostname.  This overrides the `host` parameter|
+|h|String|Host - The hostname to match on (optional)|
+|v|Int|Version - The redirect version to match on (optional)|
+|ho|Int|hostOnly - a flag that indicates that whjen a hostname is used, and there is no match for that hostname, whether the global 'no hostname' entried should be checked|
+
+For example, this query:
+```
+GET /checkredirect?path=/your/path&h=www.example.com&ho=1
+```
+Will search the rule table for the specified path and hostname.  If there is no match, it will NOT search again for a global entry without a hostname.  This query is equivalent:
+```
+GET /checkredirect?path=https://www.example.com/your/path&ho=1
+```
+
+### The hosts table (Optional)
+The redirector has a table for storing meta information for hosts. It currently support indicating where a host can match on the global non-host specific entries ( those without a hostname ).  This is intended as safety feature to prevent accidentally matching on an untended redirect.  This can be overridden with the `ho` query attribute.
+
+### Versioning (Optional)
+The redirector supports versioning of the rules. Each rule can take an integer version number with a default of `0`. The intention is to enbale cut-over and roll-back for a large number of redirects at the same time.  The `version` table (schema below) holds the active version.  Updating this table will update the version number that is added to the lookup.  This can be overridded by the `v` query parameter.
 
 ### Viewing Metrics
 
@@ -146,16 +170,15 @@ The `rule` table in the `redirects` database stores redirect entries with the fo
 - `statusCode`: HTTP status code for the redirect (default: 301)
 - `lastAccessed`: Timestamp of last access
 
-The `version` table in the `redirect` database stores the active version.  
+The `version` table in the `redirect` database stores the active version. This is intended to be a single row table 
 
 - `code`: The version code (Primary Key)
-- `utcStartTime`: The time the version should go active
-- `utcEndTime`: The time the version should become inactive
+- `activeVersion`: The time the version should go active
 
 The `hosts` table in the `redirect` database stores the per host information.
 
 - `host`: The version code (Primary Key)
-- `allowGlobalRules`: A boolean that determines if a rules without a hostname can be applied to this host
+- `hostOnly`: A boolean that determines if a rules without a hostname can be applied to this host
 
 ## API Endpoints
 
@@ -187,10 +210,27 @@ Content-length: <CL of body>
 {"path":"/foo","redirectURL":"/bar","statusCode":304}        
 ```
 
+```
+POST /version
+Content-type: application/json
+Content-length: <CL of body>
+
+{"activeVersion":2}
+```
+
+```
+POST /hosts
+Content-type: application/json
+Content-length: <CL of body>
+
+{"host":"www.example.com","hostOnly":1}
+```
+
 ### Read
 ```
 GET /rule/35a1cb2d-5c99-4172-9e3c-c40639d138b5
 GET /rule/?path=/d/shoes/
+GET /hosts/?host=www.example.com
 ```
 
 ### Update
@@ -202,12 +242,23 @@ Content-length: <CL of body>
 {"path":"/p/shoes/","redirectURL":"/shop/shoes?id=1236","statusCode":304'}
 ```
 
+```
+PUT /rule/35a1cb2d-5c99-4172-9e3c-c40639d138b5
+Content-type: application/json
+Content-length: <CL of body>
+
+{"currentVersion":3}
+```
+
 ### Delete
 ```
 DELETE /rule/35a1cb2d-5c99-4172-9e3c-c40639d138b5
 DELETE /rule/?path=/p/shoes/
 DELETE /rule/?path==*
 ```
+
+
+
 
 ## Testing
 
