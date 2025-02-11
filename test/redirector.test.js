@@ -10,7 +10,7 @@ const USERNAME = process.env.USERNAME
 const PASSWORD = process.env.PASSWORD
 const TOKEN    = Buffer.from( `${USERNAME}:${PASSWORD}` ).toString('base64');
 
-const nentries = 15
+const nentries = 16
 
 const csvfile = 'data/example.csv'
 const jsonfile = 'data/example.json'
@@ -390,7 +390,8 @@ describe("Update a record with start and end times and retrieve", () => {
 
 })
 
-  /*
+/*
+
 describe( "Clear the entries", () => {
   it( "Should execute a successful DELETE request", async () => {
     assert.ok( await clearTable( 'rule' ) )
@@ -400,5 +401,23 @@ describe( "Clear the entries", () => {
   })
 })
 
-   */
+*/
+
+
+/*
+
+retain / remvore paramterts
+
+
+Handling Redirects
+- Straght path match 1 to 1 originally
+- Now
+  - different envs
+  - different domains
+  - versioning
+  - retain query string ( need use case )
+  - remove parameters ( need use case )
+
+
+*/
 

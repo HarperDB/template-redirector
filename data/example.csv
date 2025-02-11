@@ -15,3 +15,4 @@ utcStartTime,utcEndTime,path,host,version,redirectURL,statusCode
 ,,/p/shoes/flats/,,1,/shop/shoes/flats/v2,301
 ,,/p/dresses/,,1,/shop/dresses/v2,301
 ,,/p/shirts/help/iron/,,0,/info/care?id=1234,301
+,,https://www.example.com/p/shirts/help/iron/full,,0,https://www.another.com/info/care/full?id=1234,301

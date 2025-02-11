@@ -6,6 +6,32 @@ const { hdb_analytics } = databases.system;
 import util from 'util';
 
 
+  /*
+   * Accepts:
+   *   /path/segments
+   *   //schemeless.urls.com/path/segments
+   *   https?://full.urls.com/path/segments
+   */
+const parsePath = (url) => {
+    // the URL class wants things to start with a scheme
+    if ( url.startsWith('//') ) {
+      url = 'https:' + url;
+    }
+
+    // If it does nto start with a scheme it is just a path fragment
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+			return ["",url];
+		}
+
+		const parsedUrl = new URL(url);
+
+    
+    
+		return [parsedUrl.host, parsedUrl.pathname + parsedUrl.search];
+    
+    
+  }
+
 /**
  * Class representing the redirect functionality.
  * Handles importing and processing of redirect rules from CSV data.
@@ -54,12 +80,19 @@ export class redirect extends databases.redirects.rule {
       
 			if (!this.validateRedirect(item, skipped)) continue;
 
-			item.redirectURL = this.stripDomain(item.redirectURL);
+			//item.redirectURL = this.stripDomain(item.redirectURL);
 
-      const query = { conditions: [
-        { attribute: 'path',    value: item.path },
-        { attribute: 'host',    value: item.host },
-        { attribute: 'version', value: item.version } ] }
+      const [ host, path ] = parsePath( item.path )
+
+      item.host = host || item.host
+      item.path = path
+      
+      const query = {
+        conditions: [
+          { attribute: 'path',    value: item.path },
+          { attribute: 'host',    value: item.host },
+          { attribute: 'version', value: item.version } ]
+      }
       
       const result = []
 	    for await (const record of databases.redirects.rule.search( query )) {
@@ -157,7 +190,7 @@ export class checkredirect extends Resource {
     /* Query string parameters take priority */
     var path = query.get("path") ?? context?.headers?.get('path') ?? ''
     
-    var [host,path] = this.parsePath( path )
+    var [host,path] = parsePath( path )
 
     const qv = parseInt(query.get("v"));
     const version = paramToInt(query.get("v"), await this.getCurrentVersion())
@@ -278,31 +311,6 @@ export class checkredirect extends Resource {
 
   }
   
-  /*
-   * Accepts:
-   *   /path/segments
-   *   //schemeless.urls.com/path/segments
-   *   https?://full.urls.com/path/segments
-   */
-  parsePath(url) {
-    // the URL class wants things to start with a scheme
-    if ( url.startsWith('//') ) {
-      url = 'https:' + url;
-    }
-
-    // If it does nto start with a scheme it is just a path fragment
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-			return ["",url];
-		}
-
-		const parsedUrl = new URL(url);
-
-    
-    
-		return [parsedUrl.host, parsedUrl.pathname + parsedUrl.search];
-    
-    
-  }
 
 
   /**
