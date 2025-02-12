@@ -161,6 +161,10 @@ its [documentaion](https://docs.harperdb.io/docs/developers/rest)
 
 ### Create
 
+> [!NOTE]
+> 
+> These examples for creating records in the rule are illustrative only.  Please use the `/redirect` endpoing for adding redirects.
+
 ```
 POST /rule
 Content-type: application/json
