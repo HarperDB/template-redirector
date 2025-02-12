@@ -1,67 +1,25 @@
-# [Customer] Redirector
-
-There has been [work](https://github.com/HarperDB/Component-ReadMe-Template/blob/main/component-readme-template.md) started to document external component.  
-This documetn has not yet integrated those ideas.  But it should.
+# Redirector Tenplate
 
 ## Overview
 
-The Redirector is a HarperDB component designed to enhance and scale the 
-Akamai Redirector Cloudlet product. It addresses the limitations of Akamai's 5,000 rule limit 
-and performance issues associated with top-down rule execution. 
-This solution aims to support customers requiring hundreds of thousands to millions 
-of redirects, offering improved performance and scalability.
-
-> [!NOTE]
-> Do we want to reference the Akamai component here?  This really is a standalone component
-
+The Redirector is a Harper component designed provide or to enhance and scale 
+existsing redirector aplications. This solution aims to support customers requiring hundreds of 
+thousands to millions of redirects, offering improved performance and scalability.
 
 ## Features
 
-- CSV-based redirect rule import
+- CSV and JSON based redirect rule import
 - Efficient redirect lookup
 - Time-based redirect activation
 - Redirect usage analytics
 - GraphQL schema for flexible querying
 
-## Requirements
-
-> [!NOTE]
-> From a pure extrenal component standpoint this section is not needed.  INternally for planning
-> obviously it is.
-
-- Request rate (r/s): What request rate is expected
-- Number of redirects: What is the raw number of redirect entries 
-- Redirect type: Straight matches, regexes, etc
-- Total data size on disk: Disk footprint for the data
-- TTL for records (if applicable): How will they expire?
-- Customer distribution (for regions): Europe, NA, global?
-- Sample data: TBD
-- Sample queries: TBD
-- DB architecture requirements (schema etc): TBD
-- Success criteria: TBD
-
-
 ## Technical Details
 
 ### Use Case
 
-> [!NOTE]
-> Again, remove Akamai references?
-
 The solution improves upon Akamai's Redirector Cloudlet, which has a 5,000 item limit 
 per cloudlet and requires workarounds for handling a large number of redirects.
-
-### Flow
-
-> [!NOTE]
-> Again, remove Akamai references?
-
-1. The inbound client request for a URL enters Akamai's network.
-2. The request reaches an EdgeWorker.
-3. The EdgeWorker calls out to HarperDB `/checkredirect` endpoint to check for a specific URL redirect entry.
-4. If found, it returns the new URL to the EdgeWorker, along with the redirect type (301, 302).
-5. If not found, it returns false.
-6. The EdgeWorker either returns the redirect to the browser or passes the request to Akamai's Redirector Cloudlet for regex and query param matches.
 
 ### Administration
 
@@ -74,8 +32,17 @@ The application records metrics associated with the redirect action, accessible 
 
 ## Usage
 
-> [!NOTE]
-> Adding a link to a postman connection, even an export could be very useful
+### Endpoints
+
+| `/redirect`      | Uploading CSV or JSON files with redriects            |
+| ---------------- | ----------------------------------------------------- |
+| `/checkredirect` | Query the redirector for a redirect                   |
+| `/checkmetrics`  | Get the usages of redirects (default past 90 seconds) |
+| `/rule`          | Direct REST endpoint for the rule table               |
+| `/hosts`         | Direct REST endpoint for the rule hosts               |
+| `/version`       | Direct REST endpoint for the active version table     |
+
+The Harper REST API give low level control over your data. The first three endpoints  are component level and provide higher level functionality. The last three enpdoints are direct access to Harper's REST API.  For a full description of what the REST API can do and how to use if your can refer to its [documentation](https://docs.harperdb.io/docs/developers/rest).
 
 ### Importing Redirects
 
@@ -98,30 +65,55 @@ Content-Type: application/json
 ```
 
 CSV format:
+
 ```
 utcStartTime,utcEndTime,path,redirectURL,host,version,statusCode
 ```
 
 Here is an example curl command to upload a CSV file:
+
 ```
 curl http://yourendpoint.com:9926/redirect --header "Content-type: text/csv" --data-binary @data/example.csv
 ```
 
 Note the use of `--data-binary`.  The `-d` switch will strip the newlines from your CSV file.
 
-
 ### Checking Redirects
 
-To check if a URL has a redirect:
+To do a simple check if a URL has a redirect:
 
 ```
 GET /checkredirect
 Headers:
-  path: /your/path
+  Path: /your/path
 ```
+
 or
+
 ```
 GET /checkredirect?path=/your/path
+```
+
+The full available parameters are:
+
+| name | type   | description                                                                                                                                                                    |
+| ---- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| path | String | The path portion of the redirect or the full url including scheme and hostname.  This overrides the `host` parameter                                                           |
+| h    | String | Host - The hostname to match on (optional)                                                                                                                                     |
+| v    | Int    | Version - The redirect version to match on (optional)                                                                                                                          |
+| ho   | Int    | hostOnly - a flag that indicates that whjen a hostname is used, and there is no match for that hostname, whether the global 'no hostname' entried should be checked (Optional) |
+| t    | Int    | Time - Override 'now()' for testing redirect time bounds                                                                                                                       |
+
+For example, this query:
+
+```
+GET /checkredirect?path=/your/path&h=www.example.com&ho=1
+```
+
+Will search the rule table for the specified path and hostname.  If there is no match, it will NOT search again for a global entry without a hostname.  This query is equivalent:
+
+```
+GET /checkredirect?path=https://www.example.com/your/path&ho=1
 ```
 
 ### Viewing Metrics
@@ -148,20 +140,14 @@ The `rule` table in the `redirects` database stores redirect entries with the fo
 
 The `version` table in the `redirect` database stores the active version.  
 
-- `code`: The version code (Primary Key)
-- `utcStartTime`: The time the version should go active
-- `utcEndTime`: The time the version should become inactive
+- `activeVersion`: The integer version number that should be active
 
 The `hosts` table in the `redirect` database stores the per host information.
 
 - `host`: The version code (Primary Key)
-- `allowGlobalRules`: A boolean that determines if a rules without a hostname can be applied to this host
+- `hostOnly`: A boolean that determines if a rules without a hostname can be applied to this host
 
 ## API Endpoints
-
-> [!NOTE]
-> These are the higer level functions that justify the existiance of the component.  They provide functionality beyond what
-> can simply be done in a REST call
 
 1. `POST /redirect`: Import redirect rules from CSV
 2. `GET /checkredirect`: Check if a URL has a redirect
@@ -172,10 +158,6 @@ The `hosts` table in the `redirect` database stores the per host information.
 The Harper REST API give low level control over your data.  The above calls are component level and provide higher
 level functionality. For a full description of what the REST API can do and how to use if your can refer to
 its [documentaion](https://docs.harperdb.io/docs/developers/rest)
-
-> [!NOTE]
-> These are all generic Harper REST calls. I think it is important to complete the CRUD picture showing how to manage the data here.
-> These are starting points to give a feel for what the REST API can to do complete the picture
 
 ### Create
 
@@ -227,16 +209,7 @@ The test uses a `.env` file at the componet root for configuration:
 |USERNAME|The username for basic auth|
 |PASSWORD|The passowrd for basic auth|
 
-## [Customer] Infrastructure
 
-> [!NOTE]
-> This section is unnecessary for an external component
-
-### Pilot Environment
-
-- TBD
-- Akamai GTM (DNS load balancer) Ingress URL: TBD
-- Akamai EdgeWorker Ingress URL: TBD
 
 ### Production Environment (Recommended)
 
