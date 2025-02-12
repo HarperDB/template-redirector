@@ -159,8 +159,8 @@ GET /redirectmetrics
 The `rule` table in the `redirects` database stores redirect entries with the following structure:
 
 - `id`: Unique identifier (Primary Key)
-- `utcStartTime`: Activation start time (optional)
-- `utcEndTime`: Activation end time (optional)
+- `utcStartTime`: Activation start time in epoch (optional)
+- `utcEndTime`: Activation end time in epoch (optional)
 - `host`: The hostname to match for the redirect. '*' for a globla rule.
 - `version`: The redirect version batch (optional)
 - `path`: Incoming URL path to match

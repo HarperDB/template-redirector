@@ -463,8 +463,8 @@ describe("Update a record with start and end times and retrieve", () => {
 
   it ( 'Update time span for now. PUT should get a 204.', async () => {
 
-    const now = Date.now();
-    const hour = 3600 * 1000;
+    const now = Math.floor(Date.now()/1000);
+    const hour = 3600;
     
     const url = `${SCHEME}://${HOST}/rule/${id}`
 

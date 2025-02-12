@@ -141,12 +141,20 @@ export class redirect extends databases.redirects.rule {
 	 * @returns {Object} An object formatted for posting to the database.
 	 */
 	createPostObject(item) {
-		return {
-			utcStartTime: item.utcStartTime ? item.utcStartTime * 1000 : undefined,
-			utcEndTime: item.utcEndTime ? item.utcEndTime * 1000 : undefined,
+
+    var start = parseInt(item.utcStartTime)
+    if ( isNaN(start) ) { start = undefined }
+    var end = parseInt(item.utcEndTime)
+    if ( isNaN(end) ) { end = undefined }
+    var version = parseInt(item.version)
+    if ( isNaN(version) ) { version = undefined }
+    
+    return {
+			utcStartTime: start,
+			utcEndTime: end,
 			path: item.path,
 			host: item.host,
-			version: parseInt(item.version),
+			version: version,
 			redirectURL: item.redirectURL,
 			statusCode: item.statusCode ? Number(item.statusCode) : 301,
 		};
@@ -157,13 +165,15 @@ export class redirect extends databases.redirects.rule {
 	 * @param {string} url - The full URL.
 	 * @returns {string} The URL path and query without the domain.
 	 */
+    /*
 	stripDomain(url) {
 		if (!url.startsWith('http://') && !url.startsWith('https://')) {
 			return url;
 		}
 		const parsedUrl = new URL(url);
 		return parsedUrl.pathname + parsedUrl.search;
-	}
+	  }
+     */
 }
 
 const paramToInt = ( p, dft ) => {
@@ -264,7 +274,7 @@ export class checkredirect extends Resource {
 	 * @returns {boolean} True if the redirect is valid, false otherwise.
 	 */
 	isRedirectValid(redirect, t) {
-		const now = t || Date.now();
+		const now = t || Math.floor(Date.now()/1000);
 
 		return (!redirect.utcStartTime || now >= redirect.utcStartTime) &&
 			(!redirect.utcEndTime || now <= redirect.utcEndTime);
@@ -276,9 +286,12 @@ export class checkredirect extends Resource {
 	 * @param {string} path - The URL that was matched.
 	 */
 	async recordRedirect(redirect, path) {
-		server.recordAnalytics(true, 'redirect', path, redirect.redirectURL);
-		if (!redirect.lastAccessed || redirect.lastAccessed <= Date.now() - (30 * 1000)) {
-			await databases.redirects.rule.patch({ id: redirect.id, lastAccessed: Date.now() });
+
+    const now = Math.floor(Date.now() / 1000)
+    
+    server.recordAnalytics(true, 'redirect', path, redirect.redirectURL);
+		if (!redirect.lastAccessed || redirect.lastAccessed <= now - 30) {
+			await databases.redirects.rule.patch({ id: redirect.id, lastAccessed: now });
 		}
 	}
 
@@ -352,9 +365,12 @@ export class redirectmetrics extends Resource {
   // The default condition is to filter on the redirect metrics added in
   // the past 90 seconds
   baseConditions() {
-	  return [
+
+   const now = Math.floor(Date.now() / 1000)
+ 
+    return [
 		  { attribute: 'metric', value: 'redirect', comparator: 'equals' },
-		  { attribute: 'id', value: [Date.now() - (90 * 1000), Date.now()], comparator: 'between' }
+		  { attribute: 'id', value: [now - 90, now], comparator: 'between' }
 	  ];
   }
 
