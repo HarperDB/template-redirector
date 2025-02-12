@@ -211,11 +211,6 @@ export class checkredirect extends Resource {
     }
     const t = paramToInt(query.get("t"), undefined)
 
-    console.log( hostOnly )
-
-
-
-
     
     const searchResult = await this.searchRedirect(path, host, version, hostOnly, t);
 
@@ -233,10 +228,6 @@ export class checkredirect extends Resource {
 	 */
 	async searchRedirect(path, host, version, hostOnly, t) {
 
-
-    console.log( `hostOnly = ${hostOnly} host = ${host}` )
-
-
     for (let i = 0; i < 2; i++) {
 		  const conditions = [
 			  { attribute: 'path', comparator: 'equals', value: path },
@@ -253,9 +244,6 @@ export class checkredirect extends Resource {
 		  }
 
       if ( host.length > 0 && hostOnly == 0  ) {
-        console.log( "No match - searching again" )
-
-
         host = '';
       }
       else {
@@ -264,8 +252,6 @@ export class checkredirect extends Resource {
     }
 
     return null;
-
-
 	}
 
 	/**
