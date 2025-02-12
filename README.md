@@ -34,8 +34,9 @@ The application records metrics associated with the redirect action, accessible 
 
 ### Endpoints
 
-| `/redirect`      | Uploading CSV or JSON files with redriects            |
+| Endpoint         | Description                                           |
 | ---------------- | ----------------------------------------------------- |
+| `/redirect`      | Uploading CSV or JSON files with redriects            |
 | `/checkredirect` | Query the redirector for a redirect                   |
 | `/checkmetrics`  | Get the usages of redirects (default past 90 seconds) |
 | `/rule`          | Direct REST endpoint for the rule table               |
@@ -93,6 +94,10 @@ or
 ```
 GET /checkredirect?path=/your/path
 ```
+
+> [!NOTE]
+> The Path header version does not take any of the query string options in the header.  They can
+> be added to the querystring along with the path in the Path header, however
 
 The full available parameters are:
 
@@ -208,8 +213,6 @@ The test uses a `.env` file at the componet root for configuration:
 |AUTH|Should HTTP Basic auth be sent? true/false|
 |USERNAME|The username for basic auth|
 |PASSWORD|The passowrd for basic auth|
-
-
 
 ### Production Environment (Recommended)
 
