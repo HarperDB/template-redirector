@@ -90,31 +90,31 @@ or
 GET /checkredirect?path=/your/path
 ```
 
-> [!NOTE]
-> The Path header version does not take any of the query string options in the header.  They can
-> be added to the querystring along with the path in the Path header, however
-
 The full available parameters are:
 
-| name | type   | description                                                                                                                                                                    |
-| ---- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| path | String | The path portion of the redirect or the full url including scheme and hostname.  This overrides the `host` parameter                                                           |
-| h    | String | Host - The hostname to match on (optional)                                                                                                                                     |
-| v    | Int    | Version - The redirect version to match on (optional)                                                                                                                          |
-| ho   | Int    | hostOnly - a flag that indicates that whjen a hostname is used, and there is no match for that hostname, whether the global 'no hostname' entried should be checked (Optional) |
-| t    | Int    | Time - Override 'now()' for testing redirect time bounds                                                                                                                       |
+|name|type|description|
+|----|----|-----------|
+|path|String|The path portion of the redirect or the full url including scheme and hostname.  This overrides the `host` parameter|
+|h|String|Host - The hostname to match on (optional)|
+|v|Int|Version - The redirect version to match on (optional)|
+|ho|Int|hostOnly - a flag that indicates that whjen a hostname is used, and there is no match for that hostname, whether the global 'no hostname' entried should be checked (Optional)|
+|t|Int|Time - Override the time to this epoch time for testing|
 
 For example, this query:
-
 ```
 GET /checkredirect?path=/your/path&h=www.example.com&ho=1
 ```
-
 Will search the rule table for the specified path and hostname.  If there is no match, it will NOT search again for a global entry without a hostname.  This query is equivalent:
 
 ```
 GET /checkredirect?path=https://www.example.com/your/path&ho=1
 ```
+
+### The hosts table (Optional)
+The redirector has a table for storing meta information for hosts. It currently support indicating where a host can match on the global non-host specific entries ( those without a hostname ).  This is intended as safety feature to prevent accidentally matching on an untended redirect.  This can be overridden with the `ho` query attribute.
+
+### Versioning (Optional)
+The redirector supports versioning of the rules. Each rule can take an integer version number with a default of `0`. The intention is to enbale cut-over and roll-back for a large number of redirects at the same time.  The `version` table (schema below) holds the active version.  Updating this table will update the version number that is added to the lookup.  This can be overridded by the `v` query parameter.
 
 ### Viewing Metrics
 
@@ -129,8 +129,8 @@ GET /redirectmetrics
 The `rule` table in the `redirects` database stores redirect entries with the following structure:
 
 - `id`: Unique identifier (Primary Key)
-- `utcStartTime`: Activation start time (optional)
-- `utcEndTime`: Activation end time (optional)
+- `utcStartTime`: Activation start time in epoch (optional)
+- `utcEndTime`: Activation end time in epoch (optional)
 - `host`: The hostname to match for the redirect. '*' for a globla rule.
 - `version`: The redirect version batch (optional)
 - `path`: Incoming URL path to match
@@ -138,7 +138,7 @@ The `rule` table in the `redirects` database stores redirect entries with the fo
 - `statusCode`: HTTP status code for the redirect (default: 301)
 - `lastAccessed`: Timestamp of last access
 
-The `version` table in the `redirect` database stores the active version.  
+The `version` table in the `redirect` database stores the active version. This is intended to be a single row table 
 
 - `activeVersion`: The integer version number that should be active
 
@@ -173,10 +173,27 @@ Content-length: <CL of body>
 {"path":"/foo","redirectURL":"/bar","statusCode":304}        
 ```
 
+```
+POST /version
+Content-type: application/json
+Content-length: <CL of body>
+
+{"activeVersion":2}
+```
+
+```
+POST /hosts
+Content-type: application/json
+Content-length: <CL of body>
+
+{"host":"www.example.com","hostOnly":1}
+```
+
 ### Read
 ```
 GET /rule/35a1cb2d-5c99-4172-9e3c-c40639d138b5
 GET /rule/?path=/d/shoes/
+GET /hosts/?host=www.example.com
 ```
 
 ### Update
@@ -188,12 +205,23 @@ Content-length: <CL of body>
 {"path":"/p/shoes/","redirectURL":"/shop/shoes?id=1236","statusCode":304'}
 ```
 
+```
+PUT /rule/35a1cb2d-5c99-4172-9e3c-c40639d138b5
+Content-type: application/json
+Content-length: <CL of body>
+
+{"currentVersion":3}
+```
+
 ### Delete
 ```
 DELETE /rule/35a1cb2d-5c99-4172-9e3c-c40639d138b5
 DELETE /rule/?path=/p/shoes/
 DELETE /rule/?path==*
 ```
+
+
+
 
 ## Testing
 

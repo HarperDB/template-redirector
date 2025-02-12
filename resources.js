@@ -3,6 +3,35 @@ import { URL } from 'node:url';
 
 const { hdb_analytics } = databases.system;
 
+import util from 'util';
+
+
+  /*
+   * Accepts:
+   *   /path/segments
+   *   //schemeless.urls.com/path/segments
+   *   https?://full.urls.com/path/segments
+   */
+const parsePath = (url) => {
+    // the URL class wants things to start with a scheme
+    if ( url.startsWith('//') ) {
+      url = 'https:' + url;
+    }
+
+    // If it does nto start with a scheme it is just a path fragment
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+			return ["",url];
+		}
+
+		const parsedUrl = new URL(url);
+
+    
+    
+		return [parsedUrl.host, parsedUrl.pathname + parsedUrl.search];
+    
+    
+  }
+
 /**
  * Class representing the redirect functionality.
  * Handles importing and processing of redirect rules from CSV data.
@@ -15,11 +44,21 @@ export class redirect extends databases.redirects.rule {
 	 */
 	async post(data) {
 
-    const json = Papa.parse(data.data, {
+    var json;
+
+    if ( data.contentType == 'text/csv' ) {
+
+     json = Papa.parse(data.data, {
 			header: true,
 			skipEmptyLines: true
-		});
+		 });
+    }
+    else {
+      json = data
+    }
 
+    
+    
 		const results = await this.processRedirects(json.data);
 
 		return {
@@ -41,22 +80,30 @@ export class redirect extends databases.redirects.rule {
       
 			if (!this.validateRedirect(item, skipped)) continue;
 
-			item.redirectURL = this.stripDomain(item.redirectURL);
+			//item.redirectURL = this.stripDomain(item.redirectURL);
 
-      const query = { conditions: [{ attribute: 'path', 'value': item.path }] } 
+      const [ host, path ] = parsePath( item.path )
+
+      item.host = host || item.host
+      item.path = path
+      
+      const query = {
+        conditions: [
+          { attribute: 'path',    value: item.path },
+          { attribute: 'host',    value: item.host },
+          { attribute: 'version', value: item.version } ]
+      }
+      
       const result = []
 	    for await (const record of databases.redirects.rule.search( query )) {
 		    result.push(record);
 	    }
 
       if ( result.length != 0 ) {
-        skipped.push( { reason: "Duplicate path", item } );
+        skipped.push( { reason: "Duplicate record", item } );
       }
       else {
 			  const postObject = this.createPostObject(item);
-
-        console.log( postObject )
-
 
 			  try {
 				  await databases.redirects.rule.post(postObject);
@@ -94,10 +141,20 @@ export class redirect extends databases.redirects.rule {
 	 * @returns {Object} An object formatted for posting to the database.
 	 */
 	createPostObject(item) {
-		return {
-			utcStartTime: item.utcStartTime ? item.utcStartTime * 1000 : undefined,
-			utcEndTime: item.utcEndTime ? item.utcEndTime * 1000 : undefined,
+
+    var start = parseInt(item.utcStartTime)
+    if ( isNaN(start) ) { start = undefined }
+    var end = parseInt(item.utcEndTime)
+    if ( isNaN(end) ) { end = undefined }
+    var version = parseInt(item.version)
+    if ( isNaN(version) ) { version = undefined }
+    
+    return {
+			utcStartTime: start,
+			utcEndTime: end,
 			path: item.path,
+			host: item.host,
+			version: version,
 			redirectURL: item.redirectURL,
 			statusCode: item.statusCode ? Number(item.statusCode) : 301,
 		};
@@ -108,13 +165,20 @@ export class redirect extends databases.redirects.rule {
 	 * @param {string} url - The full URL.
 	 * @returns {string} The URL path and query without the domain.
 	 */
+    /*
 	stripDomain(url) {
 		if (!url.startsWith('http://') && !url.startsWith('https://')) {
 			return url;
 		}
 		const parsedUrl = new URL(url);
 		return parsedUrl.pathname + parsedUrl.search;
-	}
+	  }
+     */
+}
+
+const paramToInt = ( p, dft ) => {
+  const i = parseInt(p);
+  return Number.isNaN(i) ? dft : i
 }
 
 /**
@@ -122,22 +186,34 @@ export class redirect extends databases.redirects.rule {
  * Handles checking if a given URL has a redirect rule.
  */
 export class checkredirect extends Resource {
-	/**
+
+  static DEFAULT_VERSION   = 0
+  static DEFAULT_HOST_ONLY = false
+  
+  /**
 	 * Checks if a given URL has a redirect rule.
 	 * @returns {Object|null} The redirect rule if found, null otherwise.
 	 */
-	async get(query) {
+	async get(query) { 
 		const context = this.getContext();
 
-    const path = this.stripDomain(
-			query.get("path")
-				? query.get("path")
-				: (context?.headers?.get('path') ?? '')
-		);
+    /* Query string parameters take priority */
+    var path = query.get("path") ?? context?.headers?.get('path') ?? ''
+    
+    var [host,path] = parsePath( path )
 
-    const searchResult = await this.searchRedirect(path);
+    const qv = parseInt(query.get("v"));
+    const version = paramToInt(query.get("v"), await this.getCurrentVersion())
+    host = query.get("h") ?? host;
+    var hostOnly = query.get("ho");
+    if ( hostOnly == null ) {
+      hostOnly = await this.getHostData( host ) || 0
+    }
+    const t = paramToInt(query.get("t"), undefined)
 
     
+    const searchResult = await this.searchRedirect(path, host, version, hostOnly, t);
+
 		if (searchResult) {
 			await this.recordRedirect(searchResult, path);
 		}
@@ -150,20 +226,32 @@ export class checkredirect extends Resource {
 	 * @param {string} path - The URL to match against.
 	 * @returns {Object|null} The matching redirect rule if found, null otherwise.
 	 */
-	async searchRedirect(path) {
-		const conditions = [
-			{ attribute: 'path', comparator: 'equals', value: path }
-		];
+	async searchRedirect(path, host, version, hostOnly, t) {
 
-		const searchResult = await databases.redirects.rule.search(conditions);
+    for (let i = 0; i < 2; i++) {
+		  const conditions = [
+			  { attribute: 'path', comparator: 'equals', value: path },
+			  { attribute: 'host', comparator: 'equals', value: host },
+			  { attribute: 'version', comparator: 'equals', value: version },
+		  ];
 
-		for await (const r of searchResult) {
-			if (this.isRedirectValid(r)) {
-				return r;
-			}
-		}
+		  const searchResult = await databases.redirects.rule.search(conditions);
 
-		return null;
+		  for await (const r of searchResult) {
+			  if (this.isRedirectValid(r, t)) {
+				  return r;
+			  }
+		  }
+
+      if ( host.length > 0 && hostOnly == 0  ) {
+        host = '';
+      }
+      else {
+        break;
+      }
+    }
+
+    return null;
 	}
 
 	/**
@@ -171,8 +259,9 @@ export class checkredirect extends Resource {
 	 * @param {Object} redirect - The redirect rule to check.
 	 * @returns {boolean} True if the redirect is valid, false otherwise.
 	 */
-	isRedirectValid(redirect) {
-		const now = Date.now();
+	isRedirectValid(redirect, t) {
+		const now = t || Math.floor(Date.now()/1000);
+
 		return (!redirect.utcStartTime || now >= redirect.utcStartTime) &&
 			(!redirect.utcEndTime || now <= redirect.utcEndTime);
 	}
@@ -183,13 +272,62 @@ export class checkredirect extends Resource {
 	 * @param {string} path - The URL that was matched.
 	 */
 	async recordRedirect(redirect, path) {
-		server.recordAnalytics(true, 'redirect', path, redirect.redirectURL);
-		if (!redirect.lastAccessed || redirect.lastAccessed <= Date.now() - (30 * 1000)) {
-			await databases.redirects.rule.patch({ id: redirect.id, lastAccessed: Date.now() });
+
+    const now = Math.floor(Date.now() / 1000)
+    
+    server.recordAnalytics(true, 'redirect', path, redirect.redirectURL);
+		if (!redirect.lastAccessed || redirect.lastAccessed <= now - 30) {
+			await databases.redirects.rule.patch({ id: redirect.id, lastAccessed: now });
 		}
 	}
 
-	/**
+  async getHostData( host ) {
+
+    const conditions = [
+      { attribute: 'host', value: host }
+		];
+
+
+
+		const searchResult = await databases.redirects.hosts.search(conditions);
+
+    const result = []
+	  for await (const record of searchResult ) {
+		  result.push(record);
+	  }
+
+
+    return result.length == 0 ? checkredirect.DEFAULT_HOST_ONLY : result[0].hostOnly
+  }
+  
+  async getCurrentVersion() {
+
+    const conditions = [
+      { attribute: 'activeVersion', value: 0, comparator: 'greater_than' }
+		];
+
+
+
+		const searchResult = await databases.redirects.version.search(conditions);
+
+    const result = []
+	  for await (const record of searchResult ) {
+		  result.push(record);
+	  }
+
+
+    return result.length == 0 ? checkredirect.DEFAULT_VERSION : result[0].activeVersion
+
+
+
+
+
+
+  }
+  
+
+
+  /**
 	 * Removes the domain from a URL, leaving only the path and query.
 	 * @param {string} url - The full URL.
 	 * @returns {string} The URL path and query without the domain.
@@ -213,9 +351,12 @@ export class redirectmetrics extends Resource {
   // The default condition is to filter on the redirect metrics added in
   // the past 90 seconds
   baseConditions() {
-	  return [
+
+   const now = Math.floor(Date.now() / 1000)
+ 
+    return [
 		  { attribute: 'metric', value: 'redirect', comparator: 'equals' },
-		  { attribute: 'id', value: [Date.now() - (90 * 1000), Date.now()], comparator: 'between' }
+		  { attribute: 'id', value: [now - 90, now], comparator: 'between' }
 	  ];
   }
 
