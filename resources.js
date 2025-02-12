@@ -195,8 +195,17 @@ export class checkredirect extends Resource {
     const qv = parseInt(query.get("v"));
     const version = paramToInt(query.get("v"), await this.getCurrentVersion())
     host = query.get("h") ?? host;
-    const hostOnly  = query.get("ho") == 1 ?? await this.getHostData( host )
+    var hostOnly = query.get("ho");
+    if ( hostOnly == null ) {
+      hostOnly = await this.getHostData( host ) || 0
+    }
     const t = paramToInt(query.get("t"), undefined)
+
+    console.log( hostOnly )
+
+
+
+
     
     const searchResult = await this.searchRedirect(path, host, version, hostOnly, t);
 
@@ -215,6 +224,9 @@ export class checkredirect extends Resource {
 	async searchRedirect(path, host, version, hostOnly, t) {
 
 
+    console.log( `hostOnly = ${hostOnly} host = ${host}` )
+
+
     for (let i = 0; i < 2; i++) {
 		  const conditions = [
 			  { attribute: 'path', comparator: 'equals', value: path },
@@ -230,7 +242,10 @@ export class checkredirect extends Resource {
 			  }
 		  }
 
-      if ( host.length > 0 && !hostOnly ) {
+      if ( host.length > 0 && hostOnly == 0  ) {
+        console.log( "No match - searching again" )
+
+
         host = '';
       }
       else {

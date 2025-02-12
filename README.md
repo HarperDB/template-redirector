@@ -45,11 +45,8 @@ of redirects, offering improved performance and scalability.
 
 ### Use Case
 
-> [!NOTE]
-> Again, remove Akamai references?
-
-The solution improves upon Akamai's Redirector Cloudlet, which has a 5,000 item limit 
-per cloudlet and requires workarounds for handling a large number of redirects.
+The solution improves provides a fast and scalable redirector component for
+handling a large number of redirects with low latency.
 
 ### Flow
 
@@ -132,6 +129,7 @@ The full available parameters are:
 |h|String|Host - The hostname to match on (optional)|
 |v|Int|Version - The redirect version to match on (optional)|
 |ho|Int|hostOnly - a flag that indicates that whjen a hostname is used, and there is no match for that hostname, whether the global 'no hostname' entried should be checked (Optional)|
+|t|Int|Time - Override the time to this epoch time for testing|
 
 For example, this query:
 ```
