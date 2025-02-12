@@ -16,11 +16,6 @@ thousands to millions of redirects, offering improved performance and scalabilit
 
 ## Technical Details
 
-### Use Case
-
-The solution improves upon Akamai's Redirector Cloudlet, which has a 5,000 item limit 
-per cloudlet and requires workarounds for handling a large number of redirects.
-
 ### Administration
 
 Customers can administer their redirect database by uploading a CSV of their redirects via the `/redirect` endpoint as well as
