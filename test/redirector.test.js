@@ -1,7 +1,9 @@
 import 'dotenv/config'
-import { describe, it } from "node:test"
+import { test, describe, it } from "node:test"
 import assert from "node:assert"
 import fs from 'fs'
+import { clearTable, getItemCount, fetchWrapper, checkRedirect,
+  getActiveVersion, setActiveVersion, addToHostTable } from './common.js'
 
 const HOST     = process.env.HOST
 const SCHEME   = process.env.SCHEME
@@ -23,233 +25,13 @@ const check_path_full = '//www.example.com/p/shirts/'
 const check_result_full = '/shop/mens-clothing/shirts?id=1234'
 
 
-const fetch_wrapper = async ( url, options ) => {
-  if ( AUTH === "true" ) {
-    options.headers ??= {}
-    options.headers.Authorization = `Basic ${TOKEN}`
-  }
-
-  return await fetch( url, options )
-}
-
-const clearTable = async ( table ) => {
-
-  const url = `${SCHEME}://${HOST}/${table}/?path==*`
-
-  try {
-    const options = {
-      method: "DELETE",
-    }
-    const resp = await fetch_wrapper( url, options )
-    return true
-  }
-  catch( e ) {
-    return false
-  }
-}
-
-const getItemCount = async ( table ) => {
-
-  const url = `${SCHEME}://${HOST}/${table}`
-
-  try {
-    const options = {
-      method: "GET",
-    }
-    const resp = await fetch_wrapper( url, options )
-    const data = await resp.json()
-    return data.recordCount
-  }
-  catch( e ) {
-    return -1
-  }
-
-}
-
-const get_query = async (path, redirect, host = "", version = -1, expectFail = false, t = -1 ) => {
-  var resp;
-  var data;
-
-  it('GET should succeed', async () => {
-    var url = `${SCHEME}://${HOST}/checkredirect?path=${path}`
-
-    if ( host.length > 0 ) {
-      url += `&h=${host}`
-    }
-    if ( version != -1 ) {
-      url += `&v=${version}`
-    }
-    if ( t != -1 ) {
-      url += `&t=${t}`
-    }
-    
-    const options = { method: "GET" }
 
 
-
-    resp = await fetch_wrapper( url, options )
-    data = await resp.json()
-
-    if ( expectFail ) {
-      assert.equal( resp.status, 404 )
-      return
-    }
-    assert.equal( resp.status, 200 )
-  })
-
-  if ( expectFail ) {
-    return
-  }
-  
-  it('Redirect should be correct', async () => {
-    assert.equal( data.redirectURL, redirect )
-  })
-  
-  it('Status code should be correct', async () => {
-    assert.equal( data.statusCode, 301 )
-  })
-  
-}
-
-const path_query = async (path, redirect, host = "" ) => {
-  var resp;
-  var data;
-
-  it('GET should succeed', async () => {
-    var url = `${SCHEME}://${HOST}/checkredirect`
-
-    if ( host.length > 0 ) {
-      url += `?&h=${host}`
-    }
-    const options = {
-      method: "GET",
-      headers: {
-        "Path": check_path
-      }
-    }
-
-    resp = await fetch_wrapper( url, options )
-    data = await resp.json()
-
-    assert.equal( resp.status, 200 )
-  })
-  
-  it('Redirect should be correct', async () => {
-    assert.equal( data.redirectURL, redirect )
-  })
-  
-  it('Status code should be correct', async () => {
-    assert.equal( data.statusCode, 301 )
-  })
-  
-}
-
-const getActiveVersion = async () => {
-  const url = `${SCHEME}://${HOST}/version/`
-
-  try {
-    const options = {
-      method: "GET",
-    }
-    const resp = await fetch_wrapper( url, options )
-
-    const json = await resp.json();
-    
-    return json[0].activeVersion
-
-  }
-  catch( e ) {
-    return -1
-  }
-  
-
-}
-
-const setActiveVersion = async ( version ) => {
-  var url = `${SCHEME}://${HOST}/version/`
-
-  try {
-    const options = {
-      method: "DELETE",
-    }
-    const resp = await fetch_wrapper( url, options )
-  }
-  catch( e ) {
-    console.log( e )
-    return false;
-  }
-
-  url = `${SCHEME}://${HOST}/version/`
-
-  const body = JSON.stringify( { 'activeVersion': version } )
-
-  
-  try {
-    const options = {
-      method: "POST",
-      headers: {
-        "Content-type": "application/json"
-      },
-      body: body
-    }
-    const resp = await fetch_wrapper( url, options )
-  }
-  catch( e ) {
-    console.log( e )
-    return false
-  }
-
-  return true
-}
-
-const clearHostTable = async () => {
-  var url = `${SCHEME}://${HOST}/hosts/`
-
-  try {
-    const options = {
-      method: "DELETE",
-    }
-    const resp = await fetch_wrapper( url, options )
-
-
-  }
-  catch( e ) {
-    console.log( e )
-    return false;
-  }
-
-  return true
-  
-}
-
-const addToHostTable = async ( host, hostOnly ) => {
-
-  const url = `${SCHEME}://${HOST}/hosts/`
-
-  const body = JSON.stringify( { host: host, hostOnly: hostOnly } )
-  
-  try {
-    const options = {
-      method: "POST",
-      headers: {
-        "Content-type": "application/json"
-      },
-      body: body
-    }
-    const resp = await fetch_wrapper( url, options )
-  }
-  catch( e ) {
-    console.log( e )
-    return false
-  }
-
-  return true;
-}
 
 
 describe( "Clear the host table", async () => {
   it( "Should set the correct version", async () => {
-    assert.equal( await clearHostTable(), true  )
+    assert.equal( await clearTable( 'hosts' ), true  )
   })
 })
 
@@ -288,7 +70,7 @@ describe("Load entries into the redirect table via CSV", () => {
         },
         body: csv_content
       }
-      resp = await fetch_wrapper( url, options )
+      resp = await fetchWrapper( url, options )
       data = await resp.json()
       assert.ok( true )
     }
@@ -329,7 +111,7 @@ describe("Load entries again into the redirect table via CSV to check exclusion 
         },
         body: csv_content
       }
-      resp = await fetch_wrapper( url, options )
+      resp = await fetchWrapper( url, options )
       data = await resp.json()
       assert.ok( true )
     }
@@ -379,7 +161,7 @@ describe("Load entries into the redirect table via JSON", () => {
         },
         body: json_content
       }
-      resp = await fetch_wrapper( url, options )
+      resp = await fetchWrapper( url, options )
       data = await resp.json()
       assert.ok( true )
     }
@@ -404,41 +186,27 @@ describe("Load entries into the redirect table via JSON", () => {
 
 
 describe("Check if a redirect exists and is correct using the query string", async () => {
-  await get_query( check_path, check_result )
+  it('fetching', async () => {
+    await checkRedirect( check_path, check_result )
+  })
 })
 
 describe("Check if a redirect exists and is correct using the Path header", async () => {
-  await path_query( check_path, check_result )
+  it( 'Checking Redirect', async () => {
+    await checkRedirect( check_path, check_result, { useHeader: true } )
+  })
 })
 
 
 describe("Check if a redirect does not exists using the query string", () => {
   it('It should return a 404', async () => {
-    const url = `${SCHEME}://${HOST}/checkredirect?path=xxx`
-    const options = { method: "GET" }
-
-    const resp = await fetch_wrapper( url, options )
-
-    assert.equal( resp.status, 404 )
+    await checkRedirect( 'xxx', '', { expectNotFound: true} )
   })
 })
 
 describe("Check if a redirect does not exists using the Path header", () => {
-
-  it('It should return a 404 and the redirect data', async () => {
-
-    const url = `${SCHEME}://${HOST}/checkredirect`
-
-    const options = {
-      method: "GET",
-      headers: {
-        "Path": "xxx"
-      }
-    }
-
-    const resp = await fetch_wrapper( url, options )
-
-    assert.equal( resp.status, 404 )
+  it('It should return a 404', async () => {
+    await checkRedirect( 'xxx', '', { expectNotFound: true, useHeader: true } )
   })
 })
 
@@ -452,7 +220,7 @@ describe("Update a record with start and end times and retrieve", () => {
     const url = `${SCHEME}://${HOST}/checkredirect?path=${check_path}`
     const options = { method: "GET" }
 
-    const resp = await fetch_wrapper( url, options )
+    const resp = await fetchWrapper( url, options )
     const data = await resp.json()
 
     id = data.id;
@@ -485,20 +253,13 @@ describe("Update a record with start and end times and retrieve", () => {
       })
     }
 
-    const resp = await fetch_wrapper( url, options )
+    const resp = await fetchWrapper( url, options )
 
     assert.equal( resp.status, 204 )
   })
 
   it('Should get a record for our redirect', async () => {
-
-    const url = `${SCHEME}://${HOST}/checkredirect?path=${check_path}`
-    const options = { method: "GET" }
-
-    const resp = await fetch_wrapper( url, options )
-    const data = await resp.json()
-
-    assert.equal( resp.status, 200 )
+    await checkRedirect( check_path, check_result )
   })
 
   it ( 'Update time span for Later. PUT should get a 204.', async () => {
@@ -523,26 +284,21 @@ describe("Update a record with start and end times and retrieve", () => {
       })
     }
     
-    const resp = await fetch_wrapper( url, options )
+    const resp = await fetchWrapper( url, options )
 
     assert.equal( resp.status, 204 )
   })
 
   it('Should not get a record for our redirect', async () => {
-
-    const url = `${SCHEME}://${HOST}/checkredirect?path=${check_path}`
-    const options = { method: "GET" }
-
-    const resp = await fetch_wrapper( url, options )
-    const data = await resp.json()
-
-    assert.equal( resp.status, 404 )
+    await checkRedirect( check_path, check_result, { expectNotFound: true } )
   })
 
 })
 
 describe( "Query with a full url", async () => {
-  await get_query( check_path_full, check_result_full )
+  it('fetching', async () => {
+    await checkRedirect( check_path_full, check_result_full )
+  })
 })
 
 
@@ -550,7 +306,9 @@ describe( "Get a full url back", async () => {
   const path = '/p/fullurl/'
   const redirect = 'https://www.another.com/info/care/full?id=1234'
 
-  await get_query( path, redirect )
+  it('fetching', async () => {
+    await checkRedirect( path, redirect )
+  })
 })
 
 
@@ -560,7 +318,9 @@ describe( "Query with host parameter", async () => {
   const redirect = '/shop/mens-clothing/shirts?id=1234'
   const host = 'www.example.com'
 
-  await get_query( path, redirect, host )
+  it('fetching', async () => {
+    await checkRedirect( path, redirect, { host: host } )
+  })
 })
 
 describe( "Same query without host parameter", async () => {
@@ -568,7 +328,9 @@ describe( "Same query without host parameter", async () => {
   const redirect = '/shop/mens-clothing/shirts?id=5678'
   const host = ''
 
-  await get_query( path, redirect, host )
+  it('fetching', async () => {
+    await checkRedirect( path, redirect )
+  })
 })
 
 
@@ -577,20 +339,25 @@ describe( "Query with version 1", async () => {
   const redirect = '/shop/dresses/v1'
   const host = ''
   const version = 1
-  
-  await get_query( path, redirect, host, version )
+
+  it('fetching', async () => {
+    await checkRedirect( path, redirect, { host, version } )
+  })
 })
 
 describe( "Same query with no version", async () => {
   const path = '/p/dresses/'
   const redirect = '/shop/dresses/v0'
-  
-  await get_query( path, redirect )
+
+        
+  it('fetching', async () => {
+    await checkRedirect( path, redirect )
+  })
 })
 
-describe( "Set the version in the version table and then query", async () => {
+test( "Set the version in the version table and then query", { serial: true }, async (t) => {
 
-  it( "Should set the correct version", async () => {
+  await t.test( "Should set the correct version", async () => {
     await setActiveVersion( 1 )
     assert.equal( await getActiveVersion(), 1  )
   })
@@ -598,16 +365,20 @@ describe( "Set the version in the version table and then query", async () => {
   const path = '/p/dresses/'
   var redirect = '/shop/dresses/v1'
 
-  await get_query( path, redirect );
+  await t.test('fetching', async () => {
+    await checkRedirect( path, redirect );
+  })
 
-  it( "Should set the correct version", async () => {
+  await t.test( "Should set the correct version", async () => {
     await setActiveVersion( 0 )
     assert.equal( await getActiveVersion(), 0  )
   })
 
   var redirect = '/shop/dresses/v0'
 
-  await get_query( path, redirect );
+  await t.test('fetching', async () => {
+    await checkRedirect( path, redirect );
+  })
 })
 
 
@@ -617,8 +388,13 @@ describe( "Check a query with the t parameter", async () => {
   const path = '/p/shirts/help/'
   var redirect = '/info/finding-the-perfect-shirt'
 
-  await get_query( path, redirect, "", -1, true );
-  await get_query( path, redirect, "", -1, false, 5 );
+  it('fetching', async () => {
+    await checkRedirect( path, redirect, { expectNotFound: true } );
+  })
+  
+  it('fetching', async () => {
+    await checkRedirect( path, redirect, { t: 5 } )
+  })
 })
 
 
@@ -629,27 +405,29 @@ describe( "Set the host table and play with hostOnly", async () => {
   var redirect = '/shop/makeup-and-perfume'
 
   it( "Should set the host table", async () => {
-    await clearHostTable()
+    await clearTable( 'hosts' )
     assert.ok( await addToHostTable( "www.example.com", true ) )
   })
 
-  await get_query( path, redirect, 'www.example.com', -1, true )
+  
+  it('fetching', async () => {
+    await checkRedirect( path, redirect, { host: 'www.example.com', expectNotFound: true } )
+  })
   
 
   it( "Should set the host table", async () => {
-    await clearHostTable()
+    await clearTable( 'hosts' )
     assert.ok( await addToHostTable( "www.example.com", false ) )
   })
 
-  await get_query( path, redirect, "www.example.com" )
+  it('fetching', async () => {
+    await checkRedirect( path, redirect, { host: 'www.example.com' } )
+  })
 
 
   it( "Should clear the host table", async () => {
-    assert.ok( await clearHostTable() )
+    assert.ok( await clearTable( 'hosts' ) )
   })
-  
-
-
 })
 
   
