@@ -1,4 +1,4 @@
-# Redirector Tenplate
+# Redirector Template
 
 ## Overview
 
