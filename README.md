@@ -99,6 +99,7 @@ The full available parameters are:
 |v|Int|Version - The redirect version to match on (optional)|
 |ho|Int|hostOnly - a flag that indicates that whjen a hostname is used, and there is no match for that hostname, whether the global 'no hostname' entried should be checked (Optional)|
 |t|Int|Time - Override the time to this epoch time for testing|
+|qs|String|Direction for handling a querytring in the path. `i` == ignore|
 
 For example, this query:
 ```
@@ -126,21 +127,60 @@ GET /redirectmetrics
 
 ## Data Model
 
+### Rule Table
+
 The `rule` table in the `redirects` database stores redirect entries with the following structure:
 
-- `id`: Unique identifier (Primary Key)
-- `utcStartTime`: Activation start time in epoch (optional)
-- `utcEndTime`: Activation end time in epoch (optional)
-- `host`: The hostname to match for the redirect. '*' for a globla rule.
-- `version`: The redirect version batch (optional)
-- `path`: Incoming URL path to match
-- `redirectURL`: URL to redirect to
-- `statusCode`: HTTP status code for the redirect (default: 301)
-- `lastAccessed`: Timestamp of last access
+|Name          |Description                                                       |
+|--------------|------------------------------------------------------------------|
+|`id`          |Unique identifier (Primary Key)                                   |
+|`utcStartTime`|Activation start time in epoch (optional)                         |
+|`utcEndTime`  |Activation end time in epoch (optional)                           |
+|`host`        |The hostname to match for the redirect. '*' for a globla rule.    |
+|`version`     |The redirect version batch (optional)                             |
+|`path`        |Incoming URL path to match                                        |
+|`redirectURL` |URL to redirect to                                                |
+|`statusCode`  |HTTP status code for the redirect (default: 301)                  |
+|`operation`   |Special opertaion on the incoming / outgoign path (see below)     |
+|`lastAccessed`|Timestamp of last access                                          |
+
+#### Operations Field
+
+The `operation` field is intended to indicate special handling for the redirect.  The current operations are:
+`qs`: preserve(p) / strip(s) / filter(f=param)
+
+|Operation|Command |Value   |Decription                                                  |
+|---------|--------|--------|------------------------------------------------------------|
+|qs       |preserve| 0/1    | 1 == copy QS to redirect. 0 == do not copy QS to redirect  |
+|         |filter  | qs arg | Name of a qs arg to filter from the copy                   |
+
+`preserve == 0` and the use of `filter` are mutually exclusive.  `filter` implies the use of `preserve=1`
+
+Example: Remove arg2 from the copied output
+
+```
+qs:filter=arg2
+```
+
+Example: Remove arg2 and arg3 from the copied output
+
+```
+qs:filter=arg2&filter=arg3
+```
+
+Example: Copy the incomming query string to the redirect
+
+```
+qs:preserve=1
+```
+
+### Version table
 
 The `version` table in the `redirect` database stores the active version. This is intended to be a single row table 
 
 - `activeVersion`: The integer version number that should be active
+
+### Host Table
 
 The `hosts` table in the `redirect` database stores the per host information.
 

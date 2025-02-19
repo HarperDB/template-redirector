@@ -24,6 +24,9 @@ type rule @table(database: "redirects") @export {
     # The HTTP status code to use for the redirect (e.g., 301, 302)
     statusCode: Int
 
+    # Advanced operations
+    operations: String
+    
     # Timestamp of when this rule was last accessed (indexed for analytics purposes)
     lastAccessed: Date @indexed
 }

@@ -1,9 +1,48 @@
 import Papa from 'papaparse';
 import { URL } from 'node:url';
+import querystring from 'node:querystring';
 
 const { hdb_analytics } = databases.system;
 
 import util from 'util';
+
+// name:cmd=value&cmd2=value2|name2:cmd=foo
+
+
+const parseOperations = (ops) => {
+
+  const opdata = {}
+  
+  const operations = ops.split('|')
+
+  for ( const op of operations ) {
+
+    const [ name, data ] = op.split(':')
+    
+    opdata[name] = {}
+
+    if( data ) {
+      const params = data.split('&')
+      for ( const param of params ) {
+        const [ key, value ] = param.split('=')
+        if ( opdata[name].hasOwnProperty(key) ) {
+          if ( Array.isArray( opdata[name][key] ) ) {
+            opdata[name][key].push( value );
+          }
+          else {
+            const arr = [ opdata[name][key], value ]
+            opdata[name][key] = arr
+          }
+        }
+        else {
+          opdata[name][key] = value;
+        }
+      }
+    }
+  }
+
+  return opdata;
+}
 
 
   /*
@@ -13,24 +52,35 @@ import util from 'util';
    *   https?://full.urls.com/path/segments
    */
 const parsePath = (url) => {
-    // the URL class wants things to start with a scheme
-    if ( url.startsWith('//') ) {
-      url = 'https:' + url;
-    }
 
-    // If it does nto start with a scheme it is just a path fragment
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-			return ["",url];
-		}
-
-		const parsedUrl = new URL(url);
-
-    
-    
-		return [parsedUrl.host, parsedUrl.pathname + parsedUrl.search];
-    
-    
+  var fullUrl = false;
+  var parsedUrl
+  
+  // the URL class wants things to start with a scheme
+  if ( url.startsWith('//') ) {
+    url = 'https:' + url;
   }
+  
+  // If it does nto start with a scheme it is just a path fragment,
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    // Add a fake host for parsing
+    parsedUrl = new URL(url, 'https://placeholder.com/' );
+	}
+  else {
+	  parsedUrl = new URL(url);
+    fullUrl = true;
+  }
+
+	return [ fullUrl ? parsedUrl.host : "", parsedUrl.pathname, parsedUrl.search];
+
+}
+
+
+export class op extends Resource {
+  async post(data) {
+    return parseOperations(data.op)
+  }
+}
 
 /**
  * Class representing the redirect functionality.
@@ -47,7 +97,6 @@ export class redirect extends databases.redirects.rule {
     var json;
 
     if ( data.contentType == 'text/csv' ) {
-
      json = Papa.parse(data.data, {
 			header: true,
 			skipEmptyLines: true
@@ -66,7 +115,7 @@ export class redirect extends databases.redirects.rule {
 			skipped: results.skipped
 		};
 	}
-
+  
 	/**
 	 * Processes an array of redirect objects.
 	 * @param {Array} redirects - An array of redirect objects from the CSV.
@@ -77,15 +126,16 @@ export class redirect extends databases.redirects.rule {
 		const skipped = [];
 
 		for (const item of redirects) {
-      
+
+
 			if (!this.validateRedirect(item, skipped)) continue;
 
 			//item.redirectURL = this.stripDomain(item.redirectURL);
 
-      const [ host, path ] = parsePath( item.path )
+      const [ host, path, querystring ] = parsePath( item.path )
 
       item.host = host || item.host
-      item.path = path
+      item.path = path + querystring
       
       const query = {
         conditions: [
@@ -156,6 +206,7 @@ export class redirect extends databases.redirects.rule {
 			host: item.host,
 			version: version,
 			redirectURL: item.redirectURL,
+      operations: item.operations,
 			statusCode: item.statusCode ? Number(item.statusCode) : 301,
 		};
 	}
@@ -200,8 +251,10 @@ export class checkredirect extends Resource {
     /* Query string parameters take priority */
     var path = query.get("path") ?? context?.headers?.get('path') ?? ''
     
-    var [host,path] = parsePath( path )
+    var [host,path,qstring] = parsePath( path )
 
+
+    const qs = query.get("qs") || '';
     const qv = parseInt(query.get("v"));
     const version = paramToInt(query.get("v"), await this.getCurrentVersion())
     host = query.get("h") ?? host;
@@ -211,14 +264,66 @@ export class checkredirect extends Resource {
     }
     const t = paramToInt(query.get("t"), undefined)
 
-    
+    if ( qs == 'inc' ) {
+      path += qstring;
+    }
+
     const searchResult = await this.searchRedirect(path, host, version, hostOnly, t);
 
-		if (searchResult) {
-			await this.recordRedirect(searchResult, path);
-		}
+    if ( searchResult ) {
+      var ops = {}
 
-		return searchResult;
+      var finalRedirect = searchResult.redirectURL;
+
+      if ( searchResult.operations?.length > 0 ) {
+        ops = parseOperations( searchResult.operations )
+      }
+
+      if ( ops.hasOwnProperty( "qs" ) ) {
+        
+
+        const hasPreserve = ops.qs.hasOwnProperty( "preserve" );
+        
+        const preserve = ops.qs?.preserve == 1 ? true : false;
+
+      
+        if ( hasPreserve && ops.qs.preserve == 1 ) {
+          finalRedirect += qstring;
+        }
+        else if ( hasPreserve && ops.qs.preserve == 0 ) {
+          // NOOP
+        }
+        else if ( ops.qs?.filter != undefined ) {
+
+          // grap the operation filter args as an array
+          const filterArgs = Array.isArray(ops.qs.filter) ? ops.qs.filter : [ ops.qs.filter ];
+
+          // Parse the query string from the Path (skip the '?') 
+          const q = querystring.parse(qstring.slice(1));
+
+          // Remove the desired arguments
+          for ( const arg of filterArgs ) {
+            delete q[arg]
+          }
+
+          const newqs = querystring.stringify( q );
+
+          if ( newqs.length > 0 ) {
+            finalRedirect += '?' + newqs;
+          }
+
+        }
+      }
+      
+		  if (searchResult) {
+        await this.recordRedirect(searchResult, path);
+		  }
+
+		  return { ...searchResult, redirectURL: finalRedirect } ;
+    }
+    else {
+      return null
+    }
 	}
 
 	/**

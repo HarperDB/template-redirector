@@ -12,7 +12,7 @@ const USERNAME = process.env.USERNAME
 const PASSWORD = process.env.PASSWORD
 const TOKEN    = Buffer.from( `${USERNAME}:${PASSWORD}` ).toString('base64');
 
-const nentries = 18
+const nentries = 24
 
 const csvfile = 'data/example.csv'
 const jsonfile = 'data/example.json'
@@ -23,9 +23,6 @@ const check_path = '/p/shoes/'
 const check_result = '/shop/shoes/v0?id=1236'
 const check_path_full = '//www.example.com/p/shirts/'
 const check_result_full = '/shop/mens-clothing/shirts?id=1234'
-
-
-
 
 
 
