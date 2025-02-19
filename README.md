@@ -147,7 +147,6 @@ The `rule` table in the `redirects` database stores redirect entries with the fo
 #### Operations Field
 
 The `operation` field is intended to indicate special handling for the redirect.  The current operations are:
-`qs`: preserve(p) / strip(s) / filter(f=param)
 
 |Operation|Command |Value   |Decription                                                  |
 |---------|--------|--------|------------------------------------------------------------|
