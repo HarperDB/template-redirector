@@ -264,7 +264,7 @@ export class checkredirect extends Resource {
     }
     const t = paramToInt(query.get("t"), undefined)
 
-    if ( qs == 'inc' ) {
+    if ( qs == 'm' ) {
       path += qstring;
     }
 
