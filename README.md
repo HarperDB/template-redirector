@@ -99,7 +99,7 @@ The full available parameters are:
 |v|Int|Version - The redirect version to match on (optional)|
 |ho|Int|hostOnly - a flag that indicates that whjen a hostname is used, and there is no match for that hostname, whether the global 'no hostname' entried should be checked (Optional)|
 |t|Int|Time - Override the time to this epoch time for testing|
-|qs|String|Direction for handling a querytring in the path. `i` == ignore|
+|qs|String|Direction for handling a querystring in the path. `i` == ignore (default) `m` == match|
 
 For example, this query:
 ```
