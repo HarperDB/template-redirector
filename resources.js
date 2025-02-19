@@ -6,17 +6,12 @@ const { hdb_analytics } = databases.system;
 
 import util from 'util';
 
-// name:cmd=value&cmd2=value2|name2:cmd=foo
-
-
 const parseOperations = (ops) => {
 
   const opdata = {}
-  
   const operations = ops.split('|')
 
   for ( const op of operations ) {
-
     const [ name, data ] = op.split(':')
     
     opdata[name] = {}
@@ -71,15 +66,9 @@ const parsePath = (url) => {
     fullUrl = true;
   }
 
-	return [ fullUrl ? parsedUrl.host : "", parsedUrl.pathname, parsedUrl.search];
+  // Remove the fake host if necessary
+	return [ fullUrl ? parsedUrl.host : '', parsedUrl.pathname, parsedUrl.search];
 
-}
-
-
-export class op extends Resource {
-  async post(data) {
-    return parseOperations(data.op)
-  }
 }
 
 /**
@@ -89,7 +78,7 @@ export class op extends Resource {
 export class redirect extends databases.redirects.rule {
 	/**
 	 * Processes the incoming CSV data and creates redirect rules.
-	 * @param {Object} data - The request data containing CSV content.
+	 * @param {Object} data - The request data containing CSV or JSON content.
 	 * @returns {Object} A summary of the import process.
 	 */
 	async post(data) {
@@ -105,8 +94,6 @@ export class redirect extends databases.redirects.rule {
     else {
       json = data
     }
-
-    
     
 		const results = await this.processRedirects(json.data);
 
@@ -130,8 +117,6 @@ export class redirect extends databases.redirects.rule {
 
 			if (!this.validateRedirect(item, skipped)) continue;
 
-			//item.redirectURL = this.stripDomain(item.redirectURL);
-
       const [ host, path, querystring ] = parsePath( item.path )
 
       item.host = host || item.host
@@ -150,7 +135,7 @@ export class redirect extends databases.redirects.rule {
 	    }
 
       if ( result.length != 0 ) {
-        skipped.push( { reason: "Duplicate record", item } );
+        skipped.push( { reason: 'Duplicate record', item } );
       }
       else {
 			  const postObject = this.createPostObject(item);
@@ -210,21 +195,6 @@ export class redirect extends databases.redirects.rule {
 			statusCode: item.statusCode ? Number(item.statusCode) : 301,
 		};
 	}
-
-	/**
-	 * Removes the domain from a URL, leaving only the path and query.
-	 * @param {string} url - The full URL.
-	 * @returns {string} The URL path and query without the domain.
-	 */
-    /*
-	stripDomain(url) {
-		if (!url.startsWith('http://') && !url.startsWith('https://')) {
-			return url;
-		}
-		const parsedUrl = new URL(url);
-		return parsedUrl.pathname + parsedUrl.search;
-	  }
-     */
 }
 
 const paramToInt = ( p, dft ) => {
@@ -249,20 +219,19 @@ export class checkredirect extends Resource {
 		const context = this.getContext();
 
     /* Query string parameters take priority */
-    var path = query.get("path") ?? context?.headers?.get('path') ?? ''
+    var path = query.get('path') ?? context?.headers?.get('path') ?? ''
     
     var [host,path,qstring] = parsePath( path )
 
-
-    const qs = query.get("qs") || '';
-    const qv = parseInt(query.get("v"));
-    const version = paramToInt(query.get("v"), await this.getCurrentVersion())
-    host = query.get("h") ?? host;
-    var hostOnly = query.get("ho");
+    const qs = query.get('qs') || '';
+    const qv = parseInt(query.get('v'));
+    const version = paramToInt(query.get('v'), await this.getCurrentVersion())
+    host = query.get('h') ?? host;
+    var hostOnly = query.get('ho');
     if ( hostOnly == null ) {
       hostOnly = await this.getHostData( host ) || 0
     }
-    const t = paramToInt(query.get("t"), undefined)
+    const t = paramToInt(query.get('t'), undefined)
 
     if ( qs == 'm' ) {
       path += qstring;
@@ -279,10 +248,10 @@ export class checkredirect extends Resource {
         ops = parseOperations( searchResult.operations )
       }
 
-      if ( ops.hasOwnProperty( "qs" ) ) {
+      if ( ops.hasOwnProperty( 'qs' ) ) {
         
 
-        const hasPreserve = ops.qs.hasOwnProperty( "preserve" );
+        const hasPreserve = ops.qs.hasOwnProperty( 'preserve' );
         
         const preserve = ops.qs?.preserve == 1 ? true : false;
 
@@ -377,7 +346,6 @@ export class checkredirect extends Resource {
 	 * @param {string} path - The URL that was matched.
 	 */
 	async recordRedirect(redirect, path) {
-
     const now = Math.floor(Date.now() / 1000)
     
     server.recordAnalytics(true, 'redirect', path, redirect.redirectURL);
@@ -387,12 +355,9 @@ export class checkredirect extends Resource {
 	}
 
   async getHostData( host ) {
-
     const conditions = [
       { attribute: 'host', value: host }
 		];
-
-
 
 		const searchResult = await databases.redirects.hosts.search(conditions);
 
@@ -401,17 +366,13 @@ export class checkredirect extends Resource {
 		  result.push(record);
 	  }
 
-
     return result.length == 0 ? checkredirect.DEFAULT_HOST_ONLY : result[0].hostOnly
   }
   
   async getCurrentVersion() {
-
     const conditions = [
       { attribute: 'activeVersion', value: 0, comparator: 'greater_than' }
 		];
-
-
 
 		const searchResult = await databases.redirects.version.search(conditions);
 
@@ -420,16 +381,8 @@ export class checkredirect extends Resource {
 		  result.push(record);
 	  }
 
-
     return result.length == 0 ? checkredirect.DEFAULT_VERSION : result[0].activeVersion
-
-
-
-
-
-
   }
-  
 
 
   /**
