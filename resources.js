@@ -208,9 +208,13 @@ const paramToInt = ( p, dft ) => {
  */
 export class checkredirect extends Resource {
 
+  allowRead( user, context ) {
+    return user.role.permission.redirects.tables.rule.read
+  }
+
   static DEFAULT_VERSION   = 0
   static DEFAULT_HOST_ONLY = false
-  
+
   /**
 	 * Checks if a given URL has a redirect rule.
 	 * @returns {Object|null} The redirect rule if found, null otherwise.
@@ -405,6 +409,10 @@ export class checkredirect extends Resource {
  * Handles retrieval of redirect usage metrics.
  */
 export class redirectmetrics extends Resource {
+
+  allowRead( user, context ) {
+    return user.role.permission.redirects.tables.rule.read
+  }
 
   // The default condition is to filter on the redirect metrics added in
   // the past 90 seconds
