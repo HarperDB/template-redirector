@@ -1,7 +1,7 @@
 # Redirect rule table
 type rule @table(database: "redirects") @export {
     # Unique identifier for the rule
-    id: ID @primaryKey
+    id: Any @primaryKey
 
     # UTC timestamp for when the rule becomes active (optional)
     utcStartTime: Float
@@ -16,10 +16,10 @@ type rule @table(database: "redirects") @export {
     redirectPath: String @indexed
 
     # The host name for the redirect (optional)
-    host: String @indexed
+    host: String
 
     # The version for the redirect
-    version: Int @indexed
+    version: Int
 
     # The HTTP status code to use for the redirect (e.g., 301, 302)
     statusCode: Int
@@ -33,7 +33,7 @@ type rule @table(database: "redirects") @export {
 
 type hosts @table(database: "redirects") @export {
     # Unique identifier for the host entry
-    id: ID @primaryKey
+    id: Any @primaryKey
 
     # The host name for the redirect (optional)
     host: String @indexed
@@ -44,7 +44,7 @@ type hosts @table(database: "redirects") @export {
 
 type version @table(database: "redirects") @export {
     # Unique identifier for the host entry
-    id: ID @primaryKey
+    id: Any @primaryKey
 
     # The host name for the redirect (optional)
     activeVersion: Int @indexed
