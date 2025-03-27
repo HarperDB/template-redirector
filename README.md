@@ -26,7 +26,7 @@ Querying is as simple as sending a GET to `/checkredirect` with the path to matc
 
 ### Observability
 
-The application records metrics associated with the redirect action, accessible via the `/redirectmetrics` endpoint.
+The application records metrics associated with the redirect action.
 
 ## Getting Started
 
@@ -45,7 +45,6 @@ This assumes you have the Harper stack already [installed]([Install HarperDB | H
 | ---------------- | ----------------------------------------------------- |
 | `/redirect`      | Uploading CSV or JSON files with redriects            |
 | `/checkredirect` | Query the redirector for a redirect                   |
-| `/checkmetrics`  | Get the usages of redirects (default past 90 seconds) |
 | `/rule`          | Direct REST endpoint for the rule table               |
 | `/hosts`         | Direct REST endpoint for the rule hosts               |
 | `/version`       | Direct REST endpoint for the active version table     |
@@ -151,14 +150,6 @@ The redirector has a table for storing meta information for hosts. It currently 
 ### Versioning
 
 The redirector supports versioning of the rules. Each rule can take an integer version number with a default of `0`. The intention is to enbale cut-over and roll-back for a large number of redirects at the same time.  The `version` table (schema below) holds the active version.  Updating this table will update the version number that is added to the lookup.  This can be overridded by the `v` query parameter.
-
-### Viewing Metrics
-
-Access redirect usage metrics:
-
-```
-GET /redirectmetrics
-```
 
 ## Data Model
 
