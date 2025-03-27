@@ -206,12 +206,7 @@ const paramToInt = ( p, dft ) => {
  * Class representing the checkredirect functionality.
  * Handles checking if a given URL has a redirect rule.
  */
-export class checkredirect extends Resource {
-
-  allowRead( user, context ) {
-    return user.role.permission.redirects.tables.rule.read
-  }
-
+export class checkredirect extends databases.redirects.rule {
   static DEFAULT_VERSION   = 0
   static DEFAULT_HOST_ONLY = false
 
@@ -289,7 +284,7 @@ export class checkredirect extends Resource {
       }
       
 		  if (searchResult) {
-        await this.recordRedirect(searchResult, path);
+			  server.recordAnalytics(true, 'redirect', path, redirect.redirectURL);
 		  }
 
 		  return { ...searchResult, redirectURL: finalRedirect } ;
@@ -344,20 +339,6 @@ export class checkredirect extends Resource {
 			(!redirect.utcEndTime || now <= redirect.utcEndTime);
 	}
 
-	/**
-	 * Records analytics for a successful redirect and updates the last accessed time.
-	 * @param {Object} redirect - The redirect rule that was matched.
-	 * @param {string} path - The URL that was matched.
-	 */
-	async recordRedirect(redirect, path) {
-    const now = Math.floor(Date.now() / 1000)
-    
-    server.recordAnalytics(true, 'redirect', path, redirect.redirectURL);
-		if (!redirect.lastAccessed || redirect.lastAccessed <= now - 30) {
-			await databases.redirects.rule.patch({ id: redirect.id, lastAccessed: now });
-		}
-	}
-
   async getHostData( host ) {
     const conditions = [
       { attribute: 'host', value: host }
@@ -404,44 +385,3 @@ export class checkredirect extends Resource {
 	}
 }
 
-/**
- * Class representing the redirectmetrics functionality.
- * Handles retrieval of redirect usage metrics.
- */
-export class redirectmetrics extends Resource {
-
-  allowRead( user, context ) {
-    return user.role.permission.redirects.tables.rule.read
-  }
-
-  // The default condition is to filter on the redirect metrics added in
-  // the past 90 seconds
-  baseConditions() {
-
-   const now = Math.floor(Date.now() / 1000)
- 
-    return [
-		  { attribute: 'metric', value: 'redirect', comparator: 'equals' },
-		  { attribute: 'id', value: [now - 90, now], comparator: 'between' }
-	  ];
-  }
-
-	/**
-	 * Retrieves redirect metrics based on the provided query.
-	 * @param {Object} query - The query parameters for filtering metrics.
-	 * @returns {Array} An array of metric objects matching the query.
-	 */
-  async get(query) {
-		return hdb_analytics.search({ conditions: this.baseConditions() });
-	}
-
-  async post(query) {
-		if (query?.conditions) {
-      query.conditions.push(this.baseConditions()[0]);
-			return hdb_analytics.search(query);
-		} else {
-			return hdb_analytics.search({ conditions: this.baseConditions() });
-		}
-	}
-
-}
