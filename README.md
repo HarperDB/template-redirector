@@ -82,7 +82,7 @@ Fields (See `rule` table below for more information):
 |path        |Yes     |The path to match on.  This can be the path element of the URL or a full url. If it is the full URL the host will populate the host field below                             |
 |redirectURL |Yes     |The path or URL to redirect to                         |
 |host        |No      |The host to match on as well as the path. If empty, this rule can apply to any host.  See `ho` below |
-|version     |No      |Defaults to 0. The version that applies to this rule. See the `version` table below |
+|version     |No      |Defaults to the current active version. The version that applies to this rule. See the `version` table below |
 |operations  |No      |See `operations` below under the `rule` table |
 |statusCode  |Yes     |The status code to return with the redirect (302, 302, 307, etc) |
 
