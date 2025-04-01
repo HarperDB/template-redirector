@@ -125,8 +125,6 @@ export class redirect extends databases.redirects.rule {
       item.path = path + querystring
       item.version = typeof item.version === 'number' ? item.version : defaultVersion;
 
-      console.log(item.version)
-
       const query = {
         conditions: [
           { attribute: 'path', value: item.path },
