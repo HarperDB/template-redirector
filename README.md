@@ -2,8 +2,13 @@
 
 ## Overview
 
-The Redirector is a Harper component designed provide or to enhance and scale 
-existsing redirector aplications. This solution aims to support customers requiring hundreds of thousands to millions of redirects, offering improved performance and scalability.
+The Redirector is a Harper component built to handle large-scale redirect needs. It enhances the performance and scalability of existing redirector applications, supporting use cases that require hundreds of thousands to millions of redirects.
+
+
+### What is Harper
+
+Harper is a Composable Application Platform that merges database, cache, app logic, and messaging into a single runtime. Components like this plug directly into Harper, letting you build and scale distributed services fast—without managing separate systems. Built for geo-distributed apps with low latency and high uptime by default.
+
 
 ## Features
 
@@ -26,7 +31,7 @@ Querying is as simple as sending a GET to `/checkredirect` with the path to matc
 
 ### Observability
 
-The application records metrics associated with the redirect action, accessible via the `/redirectmetrics` endpoint.
+The application records metrics associated with the redirect action.
 
 ## Getting Started
 
@@ -45,7 +50,6 @@ This assumes you have the Harper stack already [installed]([Install HarperDB | H
 | ---------------- | ----------------------------------------------------- |
 | `/redirect`      | Uploading CSV or JSON files with redriects            |
 | `/checkredirect` | Query the redirector for a redirect                   |
-| `/checkmetrics`  | Get the usages of redirects (default past 90 seconds) |
 | `/rule`          | Direct REST endpoint for the rule table               |
 | `/hosts`         | Direct REST endpoint for the rule hosts               |
 | `/version`       | Direct REST endpoint for the active version table     |
@@ -74,8 +78,25 @@ Content-Type: application/json
 
 CSV format:
 
+Fields (See `rule` table below for more information):
+
+|Name        |Required|Description                                            |
+-------------|---------|------------------------------------------------------|
+|utcStartTime|No      |Time in unix epoch seconds to start applying the rule  |
+|utcEndTime  |No      |Time in unix epoch seconds to stop applying the rule   |
+|path        |Yes     |The path to match on.  This can be the path element of the URL or a full url. If it is the full URL the host will populate the host field below                             |
+|redirectURL |Yes     |The path or URL to redirect to                         |
+|host        |No      |The host to match on as well as the path. If empty, this rule can apply to any host.  See `ho` below |
+|version     |No      |Defaults to the current active version. The version that applies to this rule. See the `version` table below |
+|operations  |No      |See `operations` below under the `rule` table |
+|statusCode  |Yes     |The status code to return with the redirect (302, 302, 307, etc) |
+
+Example file:
+
 ```
 utcStartTime,utcEndTime,path,redirectURL,host,version,operations,statusCode
+,,/oldpath,/newpath,,,,301
+1743120075,1743120135,/oldpath,/newpath,www.example.com,1,qs:perserve=1,302
 ```
 
 JSON Format:
@@ -151,14 +172,6 @@ The redirector has a table for storing meta information for hosts. It currently 
 ### Versioning
 
 The redirector supports versioning of the rules. Each rule can take an integer version number with a default of `0`. The intention is to enbale cut-over and roll-back for a large number of redirects at the same time.  The `version` table (schema below) holds the active version.  Updating this table will update the version number that is added to the lookup.  This can be overridded by the `v` query parameter.
-
-### Viewing Metrics
-
-Access redirect usage metrics:
-
-```
-GET /redirectmetrics
-```
 
 ## Data Model
 

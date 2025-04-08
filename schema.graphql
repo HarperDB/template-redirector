@@ -26,9 +26,6 @@ type rule @table(database: "redirects") @export {
 
     # Advanced operations
     operations: String
-    
-    # Timestamp of when this rule was last accessed (indexed for analytics purposes)
-    lastAccessed: Date @indexed
 
     # Flag indicating the the rule contains regex
     regex: Bool

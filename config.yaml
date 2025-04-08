@@ -1,0 +1,13 @@
+httplog:
+  package: 'HarperDB/httplog'
+  fileName: 'http.log'
+  maxSize: 1mb
+  maxFiles: 7
+  rotationFrequency: 1h
+  logWriteInterval: 1s
+rest: true
+graphql: true
+graphqlSchema:
+  files: schema.graphql
+jsResource:
+  files: resources.js
