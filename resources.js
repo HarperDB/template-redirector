@@ -229,6 +229,23 @@ export class redirect extends databases.redirects.rule {
       regex: item.isRegex == 1 ? true : false
 		};
 	}
+
+  async getCurrentVersion() {
+    const conditions = [
+      { attribute: 'activeVersion', value: 0, comparator: 'greater_than' }
+    ];
+
+    const searchResult = await databases.redirects.version.search(conditions);
+
+    const result = []
+    for await (const record of searchResult) {
+      result.push(record);
+    }
+
+    return result.length == 0 ? checkredirect.DEFAULT_VERSION : result[0].activeVersion
+  }
+
+
 }
 
 const paramToInt = (p, dft) => {
@@ -247,9 +264,6 @@ export class checkredirect extends Resource {
   }
 
   allowRead( user, context ) {
-
-    return true
-
     return user?.role?.permission?.redirects?.tables?.rule?.read
   }
 
@@ -348,6 +362,21 @@ export class checkredirect extends Resource {
     }
   }
 
+  async getCurrentVersion() {
+    const conditions = [
+      { attribute: 'activeVersion', value: 0, comparator: 'greater_than' }
+    ];
+
+    const searchResult = await databases.redirects.version.search(conditions);
+
+    const result = []
+    for await (const record of searchResult) {
+      result.push(record);
+    }
+
+    return result.length == 0 ? checkredirect.DEFAULT_VERSION : result[0].activeVersion
+  }
+
   /**
    * Searches for a redirect rule matching the given URL.
    * @param {string} path - The URL to match against.
@@ -428,20 +457,6 @@ export class checkredirect extends Resource {
     return result.length == 0 ? checkredirect.DEFAULT_HOST_ONLY : result[0].hostOnly
   }
 
-  async getCurrentVersion() {
-    const conditions = [
-      { attribute: 'activeVersion', value: 0, comparator: 'greater_than' }
-    ];
-
-    const searchResult = await databases.redirects.version.search(conditions);
-
-    const result = []
-    for await (const record of searchResult) {
-      result.push(record);
-    }
-
-    return result.length == 0 ? checkredirect.DEFAULT_VERSION : result[0].activeVersion
-  }
 
 
   /**
