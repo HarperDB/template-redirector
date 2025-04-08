@@ -2,8 +2,7 @@
 
 ## Overview
 
-The Redirector is a Harper component designed provide or to enhance and scale 
-existsing redirector aplications. This solution aims to support customers requiring hundreds of thousands to millions of redirects, offering improved performance and scalability.
+The Redirector is a Harper component built to handle large-scale redirect needs. It enhances the performance and scalability of existing redirector applications, supporting use cases that require hundreds of thousands to millions of redirects.
 
 ## Features
 
