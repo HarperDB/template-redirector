@@ -1,4 +1,4 @@
-utcStartTime,utcEndTime,path,host,version,redirectURL,operations,statusCode
+utcStartTime,utcEndTime,path,host,version,redirectURL,operations,statusCode,isRegex
 ,,/shop/live-shopping,,0,/s/events,,301
 ,,/p/shirts/,www.example.com,0,/shop/mens-clothing/shirts?id=1234,,301
 ,,/p/hats/,www.example.com,0,/shop/mens-clothing/hats?id=1234,,301
@@ -24,3 +24,4 @@ utcStartTime,utcEndTime,path,host,version,redirectURL,operations,statusCode
 ,,/dir2/file3,,0,/dir2/other3,qs:preserve=1,301
 ,,/dir2/file4,,0,/dir2/other4,qs:filter=arg1,301
 ,,/dir2/file5,,0,/dir2/other5,qs:filter=arg1&filter=arg2,301
+,,/foo/(.*),,0,/bar/$1,,301,1

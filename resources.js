@@ -6,6 +6,28 @@ const { hdb_analytics } = databases.system;
 
 import util from 'util';
 
+// Helper function to parse query parameters in a standard way
+const parseParams = ( query, config ) => {
+  const params = {}
+
+  for ( const [key, value] of Object.entries(config) ) {
+
+    if ( query.get(key) !== undefined ) {
+      if ( value.type === 'Bool' ) {
+        params[key] = query.get(key) == 1 ? true : false
+      }
+      else {
+        params[key] = query.get(key)
+      }
+    }
+    else {
+      params[key] = value.default
+    }
+  }
+
+  return params;
+}
+
 const parseOperations = (ops) => {
 
   const opdata = {}
@@ -46,7 +68,7 @@ const parseOperations = (ops) => {
    *   //schemeless.urls.com/path/segments
    *   https?://full.urls.com/path/segments
    */
-const parsePath = (url) => {
+const parseURLPath = (url) => {
 
   var fullUrl = false;
   var parsedUrl
@@ -117,7 +139,7 @@ export class redirect extends databases.redirects.rule {
 
 			if (!this.validateRedirect(item, skipped)) continue;
 
-      const [ host, path, querystring ] = parsePath( item.path )
+      const [ host, path, querystring ] = parseURLPath( item.path )
 
       item.host = host || item.host
       item.path = path + querystring
@@ -193,6 +215,7 @@ export class redirect extends databases.redirects.rule {
 			redirectURL: item.redirectURL,
       operations: item.operations,
 			statusCode: item.statusCode ? Number(item.statusCode) : 301,
+      regex: item.isRegex == 1 ? true : false
 		};
 	}
 }
@@ -208,8 +231,15 @@ const paramToInt = ( p, dft ) => {
  */
 export class checkredirect extends Resource {
 
+  static parsePath(path, context, query) {
+    return query.get('path') ?? context?.headers?.get('path')
+  }
+
   allowRead( user, context ) {
-    return user.role.permission.redirects.tables.rule.read
+
+    return true
+
+    return user?.role?.permission?.redirects?.tables?.rule?.read
   }
 
   static DEFAULT_VERSION   = 0
@@ -223,19 +253,27 @@ export class checkredirect extends Resource {
 		const context = this.getContext();
 
     /* Query string parameters take priority */
-    var path = query.get('path') ?? context?.headers?.get('path') ?? ''
+    var path = this.getId()
     
-    var [host,path,qstring] = parsePath( path )
+    var [host,path,qstring] = parseURLPath( path )
 
-    const qs = query.get('qs') || '';
-    const qv = parseInt(query.get('v'));
-    const version = paramToInt(query.get('v'), await this.getCurrentVersion())
-    host = query.get('h') ?? host;
-    var hostOnly = query.get('ho');
+    const paramsConfig = {
+      qs: { type: 'String', default: ''   },
+      v:  { type: 'Int',    default: null },
+      h:  { type: 'String', default: ''   },
+      ho: { type: 'Bool',   default: null },
+      t:  { type: 'Int',    default: null }
+    }
+
+    const params  = parseParams( query, paramsConfig )
+    const qs      = params.qs
+    const version = params.v || await this.getCurrentVersion()
+    const t       = params.t
+    host          = params.h || host
+    var hostOnly  = params.ho
     if ( hostOnly == null ) {
       hostOnly = await this.getHostData( host ) || 0
     }
-    const t = paramToInt(query.get('t'), undefined)
 
     if ( qs == 'm' ) {
       path += qstring;
@@ -329,6 +367,26 @@ export class checkredirect extends Resource {
       }
     }
 
+		const conditions = [
+			{ attribute: 'regex', comparator: 'equals', value: true },
+		];
+    const regexSearchResult = await databases.redirects.rule.search(conditions);
+    const regexes = await Array.fromAsync( regexSearchResult )
+
+    for ( const regexRecord of regexes ) {
+      const re = new RegExp( regexRecord.path )
+
+      if ( path.match(re) ) {
+        if (this.isRedirectValid(regexRecord, t)) {
+          const newPath = path.replace( re, regexRecord.redirectURL )
+          return {
+            ...regexRecord,
+            redirectURL: newPath
+          }
+        }
+      }
+    }
+    
     return null;
 	}
 

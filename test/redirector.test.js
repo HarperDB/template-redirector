@@ -12,7 +12,7 @@ const USERNAME = process.env.USERNAME
 const PASSWORD = process.env.PASSWORD
 const TOKEN    = Buffer.from( `${USERNAME}:${PASSWORD}` ).toString('base64');
 
-const nentries = 24
+const nentries = 25
 
 const csvfile = 'data/example.csv'
 const jsonfile = 'data/example.json'
@@ -425,6 +425,18 @@ describe( "Set the host table and play with hostOnly", async () => {
   it( "Should clear the host table", async () => {
     assert.ok( await clearTable( 'hosts' ) )
   })
+})
+
+
+
+describe( "Check a regex match", async () => {
+  const path = '/foo/dir'
+  const redirect = '/bar/dir'
+ 
+  it('fetching', async () => {
+    await checkRedirect( path, redirect, { expectNotFound: false } );
+  })
+ 
 })
 
   
