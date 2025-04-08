@@ -4,6 +4,12 @@
 
 The Redirector is a Harper component built to handle large-scale redirect needs. It enhances the performance and scalability of existing redirector applications, supporting use cases that require hundreds of thousands to millions of redirects.
 
+
+### What is Harper
+
+Harper is a Composable Application Platform that merges database, cache, app logic, and messaging into a single runtime. Components like this plug directly into Harper, letting you build and scale distributed services fast—without managing separate systems. Built for geo-distributed apps with low latency and high uptime by default.
+
+
 ## Features
 
 - CSV and JSON based redirect rule import
