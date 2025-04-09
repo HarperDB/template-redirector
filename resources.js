@@ -1,3 +1,6 @@
+
+// ‘^/products(?:(\.|/|\?|#)(.*)|$)$’
+
 import Papa from 'papaparse';
 import { URL } from 'node:url';
 import querystring from 'node:querystring';
@@ -257,14 +260,10 @@ const paramToInt = (p, dft) => {
  * Class representing the checkredirect functionality.
  * Handles checking if a given URL has a redirect rule.
  */
-export class checkredirect extends Resource {
+export class checkredirect extends databases.redirects.rule {
 
   static parsePath(path, context, query) {
     return query.get('path') ?? context?.headers?.get('path')
-  }
-
-  allowRead( user, context ) {
-    return user?.role?.permission?.redirects?.tables?.rule?.read
   }
 
   static DEFAULT_VERSION   = 0
