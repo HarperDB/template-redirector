@@ -25,3 +25,9 @@ utcStartTime,utcEndTime,path,host,version,redirectURL,operations,statusCode,isRe
 ,,/dir2/file4,,0,/dir2/other4,qs:filter=arg1,301
 ,,/dir2/file5,,0,/dir2/other5,qs:filter=arg1&filter=arg2,301
 ,,/foo/(.*),,0,/bar/$1,,301,1
+,,/dir3/dir4,,0,/dir3/dir4/dir5,,301,0
+,,/dir3/dir4,,1,/dir3/dir4/dir5,,301,0
+,,/dir3/dir4/,,0,/dir3/dir4/dir5,,301,0
+,,/dir3/dir4,www.example.com,0,/dir3/dir4/dir5,,301,0
+,,/dir3/dir4,www.example2.com,0,/dir3/dir4/dir5,,301,0
+,,/dir3/dir4/,www.example2.com,0,/dir3/dir4/dir5,,301,0
