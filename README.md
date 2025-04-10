@@ -90,6 +90,7 @@ Fields (See `rule` table below for more information):
 |version     |No      |Defaults to the current active version. The version that applies to this rule. See the `version` table below |
 |operations  |No      |See `operations` below under the `rule` table |
 |statusCode  |Yes     |The status code to return with the redirect (302, 302, 307, etc) |
+|regex       |No      |1 == `path` is a regex.  Default is `0` |
 
 Example file:
 
@@ -213,13 +214,13 @@ The `path` field can either be a literal match or a regular expression.  If the 
 /foo/(.*)
 ```
 
-and a refdirectURL as:
+and a redirectURL as:
 
 ```
 /bar/$1
 ```
 
-`/foo/index.html` will b eredirected to `/bar/index.html`
+`/foo/index.html` will be redirected to `/bar/index.html`
 
 #### Operations Field
 
