@@ -174,6 +174,16 @@ The redirector has a table for storing meta information for hosts. It currently 
 
 The redirector supports versioning of the rules. Each rule can take an integer version number with a default of `0`. The intention is to enbale cut-over and roll-back for a large number of redirects at the same time.  The `version` table (schema below) holds the active version.  Updating this table will update the version number that is added to the lookup.  This can be overridded by the `v` query parameter.
 
+### Checking Logic
+
+When checking for a redirect the system will perform checks in this order
+- First filter by version
+- Then filter by hostname od hostOnly (ho) is true
+- Then filter by time constraints
+- It will then return the most 'exact' match with exact defined as:
+  - Match host first, then path (with or without the flexible end slash handling)
+  - Match without host next, then path (with or without the flexible end slash handling)
+
 ## Data Model
 
 ### Rule Table
