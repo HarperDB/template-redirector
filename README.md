@@ -148,6 +148,7 @@ The full available parameters are:
 | ho   | Int    | hostOnly - a flag that indicates that whjen a hostname is used, and there is no match for that hostname, whether the global 'no hostname' entried should be checked (optional) |
 | t    | Int    | Time - Override the time to this epoch time for testing (optional)                                                                                                             |
 | qs   | String | Direction for handling a querystring in the path. `i` == ignore (default) `m` == match (optional)                                                                              |
+| si   | Int    | Whether to ignore a terminating slash on a check: /dir and /dir/ will match /dir. 1 == on                                                                                               |
 
 For example, this query:
 
