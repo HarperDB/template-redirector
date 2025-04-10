@@ -183,6 +183,7 @@ When checking for a redirect the system will perform checks in this order
 - It will then return the most 'exact' match with exact defined as:
   - Match host first, then path (with or without the flexible end slash handling)
   - Match without host next, then path (with or without the flexible end slash handling)
+- If there is still no match, the defined regular expressions will be used
 
 ## Data Model
 
@@ -202,6 +203,23 @@ The `rule` table in the `redirects` database stores redirect entries with the fo
 | `statusCode`   | HTTP status code for the redirect (default: 301)               |
 | `operation`    | Special opertaion on the incoming / outgoign path (see below)  |
 | `lastAccessed` | Timestamp of last access                                       |
+| `regex`        | Boolean flas that indicated the `path` is a regex              |
+
+#### `path` and `redirectURL` field
+
+The `path` field can either be a literal match or a regular expression.  If the `regex` field is `true`, `path` will be interpreted as a regex. The regex can perform normal match capturing which can then be used in the redirectURL.  This is effectively `/path/replacementURL/` if `/path/` matches the incomming URL.  This is currentlky a single match / replacement.  For example, if you have a `path` defined as:
+
+```
+/foo/(.*)
+```
+
+and a refdirectURL as:
+
+```
+/bar/$1
+```
+
+`/foo/index.html` will b eredirected to `/bar/index.html`
 
 #### Operations Field
 
