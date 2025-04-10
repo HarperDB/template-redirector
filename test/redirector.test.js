@@ -5,14 +5,25 @@ import fs from 'fs'
 import { clearTable, getItemCount, fetchWrapper, checkRedirect,
   getActiveVersion, setActiveVersion, addToHostTable } from './common.js'
 
-const HOST     = process.env.HOST
-const SCHEME   = process.env.SCHEME
-const AUTH     = process.env.AUTH
-const USERNAME = process.env.USERNAME
-const PASSWORD = process.env.PASSWORD
-const TOKEN    = Buffer.from( `${USERNAME}:${PASSWORD}` ).toString('base64');
+const HOST      = process.env.HOST
+const PORT      = process.env.PORT   || 443
+const OPPORT    = process.env.OPPORT || 9925
+const SCHEME    = process.env.SCHEME
+const AUTH      = process.env.AUTH
+const USERNAME  = process.env.USERNAME
+const PASSWORD  = process.env.PASSWORD
+const TOKEN     = Buffer.from( `${USERNAME}:${PASSWORD}` ).toString('base64');
+const REST_HOST = PORT == 443 ? HOST : `${HOST}:${PORT}`
+const OP_HOST   = `${HOST}:${OPPORT}`
 
-const nentries = 25
+//const HOST     = process.env.HOST
+//const SCHEME   = process.env.SCHEME
+//const AUTH     = process.env.AUTH
+//const USERNAME = process.env.USERNAME
+//const PASSWORD = process.env.PASSWORD
+//const TOKEN    = Buffer.from( `${USERNAME}:${PASSWORD}` ).toString('base64');
+
+const nentries = 32
 
 const csvfile = 'data/example.csv'
 const jsonfile = 'data/example.json'
@@ -57,7 +68,7 @@ describe("Load entries into the redirect table via CSV", () => {
   
   it( "Should execute a successful HTTP request", async () => {
 
-    const url = `${SCHEME}://${HOST}/redirect`
+    const url = `${SCHEME}://${REST_HOST}/redirect`
 
     try {
       const options = {
@@ -98,7 +109,7 @@ describe("Load entries again into the redirect table via CSV to check exclusion 
   
   it( "Should execute a successful HTTP request", async () => {
 
-    const url = `${SCHEME}://${HOST}/redirect`
+    const url = `${SCHEME}://${REST_HOST}/redirect`
 
     try {
       const options = {
@@ -148,7 +159,7 @@ describe("Load entries into the redirect table via JSON", () => {
   
   it( "Should execute a successful HTTP request", async () => {
 
-    const url = `${SCHEME}://${HOST}/redirect`
+    const url = `${SCHEME}://${REST_HOST}/redirect`
 
     try {
       const options = {
@@ -214,7 +225,7 @@ describe("Update a record with start and end times and retrieve", () => {
   
   it('Should get the ID of the record we want to update', async () => {
 
-    const url = `${SCHEME}://${HOST}/checkredirect?path=${check_path}`
+    const url = `${SCHEME}://${REST_HOST}/checkredirect?path=${check_path}`
     const options = { method: "GET" }
 
     const resp = await fetchWrapper( url, options )
@@ -231,7 +242,7 @@ describe("Update a record with start and end times and retrieve", () => {
     const now = Math.floor(Date.now()/1000);
     const hour = 3600;
     
-    const url = `${SCHEME}://${HOST}/rule/${id}`
+    const url = `${SCHEME}://${REST_HOST}/rule/${id}`
 
     
     const options = {
@@ -264,7 +275,7 @@ describe("Update a record with start and end times and retrieve", () => {
     const now = Date.now();
     const hour = 3600 * 1000;
     
-    const url = `${SCHEME}://${HOST}/rule/${id}`
+    const url = `${SCHEME}://${REST_HOST}/rule/${id}`
     const options = {
       method: "PUT",
       headers: {
@@ -434,11 +445,63 @@ describe( "Check a regex match", async () => {
   const redirect = '/bar/dir'
  
   it('fetching', async () => {
-    await checkRedirect( path, redirect, { expectNotFound: false } );
+    await checkRedirect( path, redirect, { expectNotFound: false } )
   })
  
 })
 
+
+
+describe( "Check for slash handling", async () => {
+  const path_no_slash = '/dir3/dir4'
+  const path_slash = '/dir3/dir4/'
+  const redirect_no_slash = '/dir3/dir4/dir5'
+  const redirect_slash = '/dir3/dir4/dir6'
+
+  it( "Should match the no_slash", async () => {
+    await checkRedirect( path_no_slash, redirect_no_slash )
+  })
+  it( "Should match the slash", async () => {
+    await checkRedirect( path_slash, redirect_slash )
+  })
+  it( "Should match the no slash", async () => {
+    await checkRedirect( "/dir3/dir5", "/dir3/dir4/dir5" )
+  })
+  it( "Should match the slash", async () => {
+    await checkRedirect( "/dir3/dir5/", "/dir3/dir4/dir5", { "si": 1 } )
+  })
+  it( "Should match the example.com record", async () => {
+    await checkRedirect( "/dir3/dir4", "/dir3/dir4/dir7", { host: "www.example.com", si: 1 } )
+  })
+  it( "Should match the example.com record without a slash", async () => {
+    await checkRedirect( "/dir3/dir4/", "/dir3/dir4/dir7", { host: "www.example.com", si: 1 } )
+  })
+  it( "Should match the example.com2 record with slash", async () => {
+    await checkRedirect( "/dir3/dir4/", "/dir3/dir4/dir8", { host: "www.example2.com" } )
+  })
+  it( "Should match the example.com2 record without slash", async () => {
+    await checkRedirect( "/dir3/dir4", "/dir3/dir4/dir7", { host: "www.example2.com", si: 1 } )
+  })
+  it( "Should match the no host record without slash", async () => {
+    await checkRedirect( "/dir3/dir4", "/dir3/dir4/dir5", { host: "www.nonexist.com" } )
+  })
+  it( "Should match the no host record with slash", async () => {
+    await checkRedirect( "/dir3/dir4/", "/dir3/dir4/dir6", { host: "www.nonexist.com" } )
+  })
+  it( "Should match the no host record with slash", async () => {
+    await checkRedirect( "/dir3/dir5", "/dir3/dir4/dir5", { host: "www.nonexist.com" } )
+  })
+  it( "Should match the no host record with slash", async () => {
+    await checkRedirect( "/dir3/dir5/", "/dir3/dir4/dir5", { host: "www.nonexist.com", si: 1 } )
+  })
+  it( "Should match the version record without slash", async () => {
+    await checkRedirect( "/dir3/dir4", "/dir3/dir4/dir9", { version: 1, si: 1 } )
+  })
+  it( "Should match the version record without slash", async () => {
+    await checkRedirect( "/dir3/dir4/", "/dir3/dir4/dir9", { version: 1, si: 1 } )
+  })
+  
+})
   
 describe( "Clear the entries", () => {
   it( "Should execute a successful DELETE request", async () => {
