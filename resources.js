@@ -276,8 +276,14 @@ export class checkredirect extends databases.redirects.rule {
   async get(query) {
     const context = this.getContext();
 
+
+
+
+
+
     /* Query string parameters take priority */
     var path = this.getId()
+    context.httplog.addCustomField( path )
     
     var [host,path,qstring] = parseURLPath( path )
 
