@@ -352,7 +352,9 @@ The test uses a `.env` file at the componet root for configuration:
 
 | Field    | Description                                |
 | -------- | ------------------------------------------ |
-| HOST     | The host:port to connect to                |
+| HOST     | The host to connect to                     |
+| PORT     | The port to use for normal HTTP calls (443)|
+| OPPORT   | The operations port (9925)                 |
 | SCHEME   | http or https                              |
 | AUTH     | Should HTTP Basic auth be sent? true/false |
 | USERNAME | The username for basic auth                |
