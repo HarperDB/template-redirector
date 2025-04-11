@@ -277,13 +277,11 @@ export class checkredirect extends databases.redirects.rule {
     const context = this.getContext();
 
 
-
-
-
-
     /* Query string parameters take priority */
     var path = this.getId()
-    context.httplog.addCustomField( path )
+
+    // Log the path if the httplog extension is in use
+    context.httplog?.addCustomField( path )
     
     var [host,path,qstring] = parseURLPath( path )
 
