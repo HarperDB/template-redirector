@@ -191,8 +191,8 @@ export class redirect extends databases.redirects.rule {
       skipped.push({ reason: 'missing path', item });
       return false;
     }
-    if (!item.redirectURL) {
-      skipped.push({ reason: 'missing redirectURL', item });
+    if (!item.redirectPath) {
+      skipped.push({ reason: 'missing redirectPath', item });
       return false;
     }
     if (item.version) {
@@ -226,7 +226,7 @@ export class redirect extends databases.redirects.rule {
       path: item.path,
       host: item.host,
       version: version,
-      redirectURL: item.redirectURL,
+      redirectPath: item.redirectPath,
       operations: item.operations,
 			statusCode: item.statusCode ? Number(item.statusCode) : 301,
       regex: item.isRegex == 1 ? true : false
@@ -313,7 +313,7 @@ export class checkredirect extends databases.redirects.rule {
     if (searchResult) {
       var ops = {}
 
-      var finalRedirect = searchResult.redirectURL;
+      var finalRedirect = searchResult.redirectPath;
 
       if (searchResult.operations?.length > 0) {
         ops = parseOperations(searchResult.operations)
@@ -356,10 +356,10 @@ export class checkredirect extends databases.redirects.rule {
       }
 
       if (searchResult) {
-        server.recordAnalytics(true, 'redirect', path, redirect.redirectURL);
+        server.recordAnalytics(true, 'redirect', path, redirect.redirectPath);
       }
 
-      return { ...searchResult, redirectURL: finalRedirect };
+      return { ...searchResult, redirectPath: finalRedirect };
     }
     else {
       return null
@@ -456,10 +456,10 @@ export class checkredirect extends databases.redirects.rule {
 
         if ( path.match(re) ) {
           if (this.isRedirectValid(regexRecord, t)) {
-            const newPath = path.replace( re, regexRecord.redirectURL )
+            const newPath = path.replace( re, regexRecord.redirectPath )
             return {
               ...regexRecord,
-              redirectURL: newPath
+              redirectPath: newPath
             }
           }
         }

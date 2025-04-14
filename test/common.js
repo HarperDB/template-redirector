@@ -140,7 +140,7 @@ const checkRedirect = async (path, redirect, options ) => {
   }
   
   assert.equal( resp.status, 200 )
-  assert.equal( data.redirectURL, redirect )
+  assert.equal( data.redirectPath, redirect )
   assert.equal( data.statusCode, 301 )
 
   return true
