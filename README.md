@@ -54,7 +54,7 @@ This assumes you have the Harper stack already [installed]([Install HarperDB | H
 | `/hosts`         | Direct REST endpoint for the rule hosts               |
 | `/version`       | Direct REST endpoint for the active version table     |
 
-The Harper REST API gives low level control over your data. The first three endpoints  are component level and provide higher level functionality. The last three enpdoints are direct access to Harper's REST API.  For a full description of what the REST API can do and how to use if your can refer to its [documentation](https://docs.harperdb.io/docs/developers/rest).
+The Harper REST API gives low level control over your data. The first two endpoints are component level and provide higher level functionality. The last three enpdoints are direct access to Harper's REST API.  For a full description of what the REST API can do and how to use if your can refer to its [documentation](https://docs.harperdb.io/docs/developers/rest).
 
 ### Importing Redirects
 
@@ -173,13 +173,13 @@ The redirector has a table for storing meta information for hosts. It currently 
 
 ### Versioning
 
-The redirector supports versioning of the rules. Each rule can take an integer version number with a default of `0`. The intention is to enbale cut-over and roll-back for a large number of redirects at the same time.  The `version` table (schema below) holds the active version.  Updating this table will update the version number that is added to the lookup.  This can be overridded by the `v` query parameter.
+The redirector supports versioning of the rules. Each rule can take an integer version number with a default of `0`. The intention is to enable cut-over and roll-back for a large number of redirects at the same time.  The `version` table (schema below) holds the active version.  Updating this table will update the version number that is added to the lookup.  This can be overridded by the `v` query parameter.
 
 ### Checking Logic
 
 When checking for a redirect the system will perform checks in this order
 - First filter by version
-- Then filter by hostname od hostOnly (ho) is true
+- Then filter by hostname if hostOnly (ho) is true
 - Then filter by time constraints
 - It will then return the most 'exact' match with exact defined as:
   - Match host first, then path (with or without the flexible end slash handling)
@@ -208,7 +208,7 @@ The `rule` table in the `redirects` database stores redirect entries with the fo
 
 #### `path` and `redirectURL` field
 
-The `path` field can either be a literal match or a regular expression.  If the `regex` field is `true`, `path` will be interpreted as a regex. The regex can perform normal match capturing which can then be used in the redirectURL.  This is effectively `/path/replacementURL/` if `/path/` matches the incomming URL.  This is currentlky a single match / replacement.  For example, if you have a `path` defined as:
+The `path` field can either be a literal match or a regular expression.  If the `regex` field is `true`, `path` will be interpreted as a regex. The regex can perform normal match capturing which can then be used in the redirectURL.  This is effectively `/path/replacementURL/` if `/path/` matches the incomming URL.  This is currently a single match / replacement.  For example, if you have a `path` defined as:
 
 ```
 /foo/(.*)
