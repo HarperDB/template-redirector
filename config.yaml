@@ -1,5 +1,5 @@
 httplog:
-  package: 'HarperDB/httplog'
+  package: 'httplog'
   fileName: 'http.log'
   maxSize: 1mb
   maxFiles: 7

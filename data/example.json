@@ -1,1 +1,513 @@
-{"data":[{"utcStartTime":"","utcEndTime":"","path":"/shop/live-shopping","host":"","version":"0","redirectURL":"/s/events","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/p/shirts/","host":"www.example.com","version":"0","redirectURL":"/shop/mens-clothing/shirts?id=1234","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/p/hats/","host":"www.example.com","version":"0","redirectURL":"/shop/mens-clothing/hats?id=1234","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/p/tshirts/","host":"www.example.com","version":"0","redirectURL":"/shop/mens-clothing/tshirts?id=1234","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/p/shirts/","host":"","version":"0","redirectURL":"/shop/mens-clothing/shirts?id=5678","operations":"","statusCode":"301"},{"utcStartTime":"0","utcEndTime":"10","path":"/p/shirts/help/","host":"","version":"0","redirectURL":"/info/finding-the-perfect-shirt","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/p/shirts/help/iron/","host":"","version":"0","redirectURL":"/info/care?id=1234","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/p/shirts/help/wash/","host":"","version":"0","redirectURL":"/info/care?id=1235","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/p/makeup/","host":"","version":"0","redirectURL":"/shop/makeup-and-perfume","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/p/shoes/","host":"","version":"0","redirectURL":"/shop/shoes/v0?id=1236","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/p/shoes/flats/","host":"","version":"0","redirectURL":"/shop/shoes/flats/v0","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/p/dresses/","host":"","version":"0","redirectURL":"/shop/dresses/v0","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/p/shoes/","host":"","version":"1","redirectURL":"/shop/shoes/v1?id=1236","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/p/shoes/flats/","host":"","version":"1","redirectURL":"/shop/shoes/flats/v1","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/p/dresses/","host":"","version":"1","redirectURL":"/shop/dresses/v1","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/p/shirts/help/iron/","host":"","version":"0","redirectURL":"/info/care?id=1234","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"https://www.example.com/p/shirts/help/iron/full","host":"","version":"0","redirectURL":"https://www.another.com/info/care/full?id=1234","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"https://www.example.com/p/shirts/help/iron/full2","host":"","version":"0","redirectURL":"//www.another.com/info/care/full?id=1234","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/p/fullurl/","host":"","version":"0","redirectURL":"https://www.another.com/info/care/full?id=1234","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/dir1/file","host":"","version":"0","redirectURL":"/dir2/other","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/dir1/file?foo=bar","host":"","version":"0","redirectURL":"/dir2/other?boo=bat","operations":"","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/dir2/file2","host":"","version":"0","redirectURL":"/dir2/other2","operations":"qs:preserve=0","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/dir2/file3","host":"","version":"0","redirectURL":"/dir2/other3","operations":"qs:preserve=1","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/dir2/file4","host":"","version":"0","redirectURL":"/dir2/other4","operations":"qs:filter=arg1","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/dir2/file5","host":"","version":"0","redirectURL":"/dir2/other5","operations":"qs:filter=arg1&filter=arg2","statusCode":"301"},{"utcStartTime":"","utcEndTime":"","path":"/foo/(.*)","host":"","version":"0","redirectURL":"/bar/$1","operations":"","statusCode":"301","isRegex":"1"},{"utcStartTime":"","utcEndTime":"","path":"/dir3/dir4","host":"","version":"0","redirectURL":"/dir3/dir4/dir5","operations":"","statusCode":"301","isRegex":"0"},{"utcStartTime":"","utcEndTime":"","path":"/dir3/dir4/","host":"","version":"0","redirectURL":"/dir3/dir4/dir6","operations":"","statusCode":"301","isRegex":"0"},{"utcStartTime":"","utcEndTime":"","path":"/dir3/dir5","host":"","version":"0","redirectURL":"/dir3/dir4/dir5","operations":"","statusCode":"301","isRegex":"0"},{"utcStartTime":"","utcEndTime":"","path":"/dir3/dir4","host":"www.example.com","version":"0","redirectURL":"/dir3/dir4/dir7","operations":"","statusCode":"301","isRegex":"0"},{"utcStartTime":"","utcEndTime":"","path":"/dir3/dir4","host":"www.example2.com","version":"0","redirectURL":"/dir3/dir4/dir7","operations":"","statusCode":"301","isRegex":"0"},{"utcStartTime":"","utcEndTime":"","path":"/dir3/dir4/","host":"www.example2.com","version":"0","redirectURL":"/dir3/dir4/dir8","operations":"","statusCode":"301","isRegex":"0"},{"utcStartTime":"","utcEndTime":"","path":"/dir3/dir4","host":"","version":"1","redirectURL":"/dir3/dir4/dir9","operations":"","statusCode":"301","isRegex":"0"}],"errors":[{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":0},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":1},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":2},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":3},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":4},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":5},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":6},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":7},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":8},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":9},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":10},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":11},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":12},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":13},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":14},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":15},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":16},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":17},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":18},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":19},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":20},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":21},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":22},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":23},{"type":"FieldMismatch","code":"TooFewFields","message":"Too few fields: expected 9 fields but parsed 8","row":24}],"meta":{"delimiter":",","linebreak":"\n","aborted":false,"truncated":false,"cursor":1820,"renamedHeaders":null,"fields":["utcStartTime","utcEndTime","path","host","version","redirectURL","operations","statusCode","isRegex"]}}
+{
+    "data": [
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/shop/live-shopping",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/s/events",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/p/shirts/",
+            "host": "www.example.com",
+            "version": "0",
+            "redirectURL": "/shop/mens-clothing/shirts?id=1234",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/p/hats/",
+            "host": "www.example.com",
+            "version": "0",
+            "redirectURL": "/shop/mens-clothing/hats?id=1234",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/p/tshirts/",
+            "host": "www.example.com",
+            "version": "0",
+            "redirectURL": "/shop/mens-clothing/tshirts?id=1234",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/p/shirts/",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/shop/mens-clothing/shirts?id=5678",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "0",
+            "utcEndTime": "10",
+            "path": "/p/shirts/help/",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/info/finding-the-perfect-shirt",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/p/shirts/help/iron/",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/info/care?id=1234",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/p/shirts/help/wash/",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/info/care?id=1235",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/p/makeup/",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/shop/makeup-and-perfume",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/p/shoes/",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/shop/shoes/v0?id=1236",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/p/shoes/flats/",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/shop/shoes/flats/v0",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/p/dresses/",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/shop/dresses/v0",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/p/shoes/",
+            "host": "",
+            "version": "1",
+            "redirectURL": "/shop/shoes/v1?id=1236",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/p/shoes/flats/",
+            "host": "",
+            "version": "1",
+            "redirectURL": "/shop/shoes/flats/v1",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/p/dresses/",
+            "host": "",
+            "version": "1",
+            "redirectURL": "/shop/dresses/v1",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/p/shirts/help/iron/",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/info/care?id=1234",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "https://www.example.com/p/shirts/help/iron/full",
+            "host": "",
+            "version": "0",
+            "redirectURL": "https://www.another.com/info/care/full?id=1234",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "https://www.example.com/p/shirts/help/iron/full2",
+            "host": "",
+            "version": "0",
+            "redirectURL": "//www.another.com/info/care/full?id=1234",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/p/fullurl/",
+            "host": "",
+            "version": "0",
+            "redirectURL": "https://www.another.com/info/care/full?id=1234",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/dir1/file",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/dir2/other",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/dir1/file?foo=bar",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/dir2/other?boo=bat",
+            "operations": "",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/dir2/file2",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/dir2/other2",
+            "operations": "qs:preserve=0",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/dir2/file3",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/dir2/other3",
+            "operations": "qs:preserve=1",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/dir2/file4",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/dir2/other4",
+            "operations": "qs:filter=arg1",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/dir2/file5",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/dir2/other5",
+            "operations": "qs:filter=arg1&filter=arg2",
+            "statusCode": "301"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/foo/(.*)",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/bar/$1",
+            "operations": "",
+            "statusCode": "301",
+            "isRegex": "1"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/dir3/dir4",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/dir3/dir4/dir5",
+            "operations": "",
+            "statusCode": "301",
+            "isRegex": "0"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/dir3/dir4/",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/dir3/dir4/dir6",
+            "operations": "",
+            "statusCode": "301",
+            "isRegex": "0"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/dir3/dir5",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/dir3/dir4/dir5",
+            "operations": "",
+            "statusCode": "301",
+            "isRegex": "0"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/dir3/dir4",
+            "host": "www.example.com",
+            "version": "0",
+            "redirectURL": "/dir3/dir4/dir7",
+            "operations": "",
+            "statusCode": "301",
+            "isRegex": "0"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/dir3/dir4",
+            "host": "www.example2.com",
+            "version": "0",
+            "redirectURL": "/dir3/dir4/dir7",
+            "operations": "",
+            "statusCode": "301",
+            "isRegex": "0"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/dir3/dir4/",
+            "host": "www.example2.com",
+            "version": "0",
+            "redirectURL": "/dir3/dir4/dir8",
+            "operations": "",
+            "statusCode": "301",
+            "isRegex": "0"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/dir3/dir4",
+            "host": "",
+            "version": "1",
+            "redirectURL": "/dir3/dir4/dir9",
+            "operations": "",
+            "statusCode": "301",
+            "isRegex": "0"
+        }
+    ],
+    "errors": [
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 0
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 1
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 2
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 3
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 4
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 5
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 6
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 7
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 8
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 9
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 10
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 11
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 12
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 13
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 14
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 15
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 16
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 17
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 18
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 19
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 20
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 21
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 22
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 23
+        },
+        {
+            "type": "FieldMismatch",
+            "code": "TooFewFields",
+            "message": "Too few fields: expected 9 fields but parsed 8",
+            "row": 24
+        }
+    ],
+    "meta": {
+        "delimiter": ",",
+        "linebreak": "\n",
+        "aborted": false,
+        "truncated": false,
+        "cursor": 1820,
+        "renamedHeaders": null,
+        "fields": [
+            "utcStartTime",
+            "utcEndTime",
+            "path",
+            "host",
+            "version",
+            "redirectURL",
+            "operations",
+            "statusCode",
+            "isRegex"
+        ]
+    }
+}
