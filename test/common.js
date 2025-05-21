@@ -1,84 +1,83 @@
 import 'dotenv/config'
-import assert from "node:assert" 
+import assert from "node:assert"
 
-const HOST      = process.env.HOST
-const PORT      = process.env.PORT   || 443
-const OPPORT    = process.env.OPPORT || 9925
-const SCHEME    = process.env.SCHEME
-const AUTH      = process.env.AUTH
-const USERNAME  = process.env.USERNAME
-const PASSWORD  = process.env.PASSWORD
-const TOKEN     = Buffer.from( `${USERNAME}:${PASSWORD}` ).toString('base64');
+const HOST = process.env.HOST
+const PORT = process.env.PORT || 443
+const OPPORT = process.env.OPPORT || 9925
+const SCHEME = process.env.SCHEME
+const AUTH = process.env.AUTH
+const USERNAME = process.env.USERNAME
+const PASSWORD = process.env.PASSWORD
+const TOKEN = Buffer.from(`${USERNAME}:${PASSWORD}`).toString('base64');
 const REST_HOST = PORT == 443 ? HOST : `${HOST}:${PORT}`
-const OP_HOST   = `${HOST}:${OPPORT}`
+const OP_HOST = `${HOST}:${OPPORT}`
 
 
-const fetchWrapper = async ( url, options ) => {
-  if ( AUTH === "true" ) {
+const fetchWrapper = async (url, options) => {
+  if (AUTH === "true") {
     options.headers ??= {}
     options.headers.Authorization = `Basic ${TOKEN}`
   }
 
-  return await fetch( url, options )
+  return await fetch(url, options)
 }
 
-const clearTable = async ( table ) => {
+const clearTable = async (table) => {
   const url = `${SCHEME}://${REST_HOST}/${table}/`
 
   try {
     const options = {
       method: "DELETE",
     }
-    const resp = await fetchWrapper( url, options )
+    const resp = await fetchWrapper(url, options)
     return true
   }
-  catch( e ) {
-    console.log( e )
+  catch (e) {
+    console.log(e)
     return false
   }
 }
 
-const getItemCount_44 = async ( table ) => {
+const getItemCount_44 = async (table) => {
   const url = `${SCHEME}://${REST_HOST}/${table}`
 
   try {
     const options = {
       method: "GET",
     }
-    const resp = await fetchWrapper( url, options )
-    const data = await resp.json()
+    const resp = await fetchWrapper(url, options)
+    const data = await resp.json();
+    console.log(data)
     return data.recordCount
   }
-  catch( e ) {
-    console.log( e )
+  catch (e) {
+    console.log(e)
     return -1
   }
 }
 
-const getItemCount_45 = async ( table ) => {
-  const url = `${SCHEME}://${OP_HOST}/${table}`
+const getItemCount_45 = async (table) => {
+  const url = `${SCHEME}://${REST_HOST}/${table}?select(id)`
 
   try {
     const options = {
-      method: "POST",
-      body: { operation: "describe_table", database: "redirect", table },
-      headers: { 'Content-Type': 'application/json' }
+      method: "GET",
     }
-    
-    const resp = await fetchWrapper( url, options )
-    const data = await resp.json()
-    
-    return data.record_count
+
+    const resp = await fetchWrapper(url, options)
+    const data = await resp.json();
+
+    return data.length;
   }
-  catch( e ) {
-    console.log( e )
+  catch (e) {
+    console.log(e)
     return -1
   }
 }
 
 
-const getItemCount = async ( table ) => {
-  return await getItemCount_44( table )
+const getItemCount = async (table) => {
+  return await getItemCount_45(table)
 }
 
 const defaultOptions = {
@@ -90,58 +89,58 @@ const defaultOptions = {
   si: -1
 }
 
-const checkRedirect = async (path, redirect, options ) => {
+const checkRedirect = async (path, redirect, options) => {
 
   options = { ...defaultOptions, ...options }
 
   var url = `${SCHEME}://${REST_HOST}/checkredirect`
   var qs = []
 
-  if ( !options.useHeader ) {
-    qs.push( `path=${path}` )
+  if (!options.useHeader) {
+    qs.push(`path=${path}`)
   }
-  if ( options.host?.length > 0 ) {
-    qs.push( `h=${options.host}` )
+  if (options.host?.length > 0) {
+    qs.push(`h=${options.host}`)
   }
-  if ( options.version != -1 ) {
-    qs.push( `v=${options.version}` )
+  if (options.version != -1) {
+    qs.push(`v=${options.version}`)
   }
-  if ( options.t != -1 ) {
-    qs.push( `t=${options.t}` )
+  if (options.t != -1) {
+    qs.push(`t=${options.t}`)
   }
-  if ( options.si != -1 ) {
-    qs.push( `si=${options.si}` )
-  }
-
-  if ( qs.length > 0 ) {
-    url += '?' + qs.join( '&' )
+  if (options.si != -1) {
+    qs.push(`si=${options.si}`)
   }
 
-  //console.log( url )
+  if (qs.length > 0) {
+    url += '?' + qs.join('&')
+  }
+
+  console.log(url)
 
 
-  
+
   const fetchOptions = { method: "GET" }
-  if ( options.useHeader ) {
+  if (options.useHeader) {
     fetchOptions.headers = { Path: path }
   }
 
-  const resp = await fetchWrapper( url, fetchOptions )
+  const resp = await fetchWrapper(url, fetchOptions)
   const data = await resp.json()
 
 
   //console.log( data )
 
 
-  
-  if ( options.expectNotFound ) {
-    assert.equal( resp.status, 404 )
+
+  if (options.expectNotFound) {
+    assert.equal(resp.status, 404)
     return
   }
-  
-  assert.equal( resp.status, 200 )
-  assert.equal( data.redirectPath, redirect )
-  assert.equal( data.statusCode, 301 )
+
+  assert.equal(resp.status, 200)
+  assert.equal(data.redirectURL, redirect)
+  assert.equal(data.statusCode, 301)
 
   return true
 }
@@ -153,27 +152,27 @@ const getActiveVersion = async () => {
     const options = {
       method: "GET",
     }
-    const resp = await fetchWrapper( url, options )
+    const resp = await fetchWrapper(url, options)
 
     const json = await resp.json();
-    
+
     return json[0].activeVersion
 
   }
-  catch( e ) {
+  catch (e) {
     return -1
   }
 }
 
-const setActiveVersion = async ( version ) => {
+const setActiveVersion = async (version) => {
 
-  clearTable( 'version' )
+  clearTable('version')
 
   const url = `${SCHEME}://${REST_HOST}/version/`
 
-  const body = JSON.stringify( { 'activeVersion': version } )
+  const body = JSON.stringify({ 'activeVersion': version })
 
-  
+
   try {
     const options = {
       method: "POST",
@@ -182,10 +181,10 @@ const setActiveVersion = async ( version ) => {
       },
       body: body
     }
-    const resp = await fetchWrapper( url, options )
+    const resp = await fetchWrapper(url, options)
   }
-  catch( e ) {
-    console.log( e )
+  catch (e) {
+    console.log(e)
     return false
   }
 
@@ -193,12 +192,12 @@ const setActiveVersion = async ( version ) => {
 }
 
 
-const addToHostTable = async ( host, hostOnly ) => {
+const addToHostTable = async (host, hostOnly) => {
 
   const url = `${SCHEME}://${REST_HOST}/hosts/`
 
-  const body = JSON.stringify( { host: host, hostOnly: hostOnly } )
-  
+  const body = JSON.stringify({ host: host, hostOnly: hostOnly })
+
   try {
     const options = {
       method: "POST",
@@ -207,10 +206,10 @@ const addToHostTable = async ( host, hostOnly ) => {
       },
       body: body
     }
-    const resp = await fetchWrapper( url, options )
+    const resp = await fetchWrapper(url, options)
   }
-  catch( e ) {
-    console.log( e )
+  catch (e) {
+    console.log(e)
     return false
   }
 

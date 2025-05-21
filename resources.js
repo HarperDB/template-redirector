@@ -7,16 +7,14 @@ import querystring from 'node:querystring';
 
 const { hdb_analytics } = databases.system;
 
-import util from 'util';
-
 // Helper function to parse query parameters in a standard way
-const parseParams = ( query, config ) => {
+const parseParams = (query, config) => {
   const params = {}
 
-  for ( const [key, value] of Object.entries(config) ) {
+  for (const [key, value] of Object.entries(config)) {
 
-    if ( query.get(key) !== undefined ) {
-      if ( value.type === 'Bool' ) {
+    if (query.get(key) !== undefined) {
+      if (value.type === 'Bool') {
         params[key] = query.get(key) == 1 ? true : false
       }
       else {
@@ -65,12 +63,12 @@ const parseOperations = (ops) => {
 }
 
 
-  /*
-   * Accepts:
-   *   /path/segments
-   *   //schemeless.urls.com/path/segments
-   *   https?://full.urls.com/path/segments
-   */
+/*
+ * Accepts:
+ *   /path/segments
+ *   //schemeless.urls.com/path/segments
+ *   https?://full.urls.com/path/segments
+ */
 const parseURLPath = (url) => {
 
   var fullUrl = false;
@@ -144,7 +142,7 @@ export class redirect extends databases.redirects.rule {
 
       if (!this.validateRedirect(item, skipped)) continue;
 
-      const [ host, path, querystring ] = parseURLPath( item.path )
+      const [host, path, querystring] = parseURLPath(item.path)
 
       item.host = host || item.host
       item.path = path + querystring
@@ -191,8 +189,8 @@ export class redirect extends databases.redirects.rule {
       skipped.push({ reason: 'missing path', item });
       return false;
     }
-    if (!item.redirectPath) {
-      skipped.push({ reason: 'missing redirectPath', item });
+    if (!item.redirectURL) {
+      skipped.push({ reason: 'missing redirectURL', item });
       return false;
     }
     if (item.version) {
@@ -226,12 +224,12 @@ export class redirect extends databases.redirects.rule {
       path: item.path,
       host: item.host,
       version: version,
-      redirectPath: item.redirectPath,
+      redirectURL: item.redirectURL,
       operations: item.operations,
-			statusCode: item.statusCode ? Number(item.statusCode) : 301,
+      statusCode: item.statusCode ? Number(item.statusCode) : 301,
       regex: item.isRegex == 1 ? true : false
-		};
-	}
+    };
+  }
 
   async getCurrentVersion() {
     const conditions = [
@@ -266,7 +264,7 @@ export class checkredirect extends databases.redirects.rule {
     return query.get('path') ?? context?.headers?.get('path')
   }
 
-  static DEFAULT_VERSION   = 0
+  static DEFAULT_VERSION = 0
   static DEFAULT_HOST_ONLY = false
 
   /**
@@ -281,27 +279,27 @@ export class checkredirect extends databases.redirects.rule {
     var path = this.getId()
 
     // Log the path if the httplog extension is in use
-    context.httplog?.addCustomField( path )
-    
-    var [host,path,qstring] = parseURLPath( path )
+    context.httplog?.addCustomField(path)
+
+    var [host, path, qstring] = parseURLPath(path)
 
     const paramsConfig = {
-      qs: { type: 'String', default: ''    },
-      v:  { type: 'Int',    default: null  },
-      h:  { type: 'String', default: ''    },
-      ho: { type: 'Bool',   default: null  },
-      t:  { type: 'Int',    default: null  },
-      si: { type: 'Bool',   default: false }
+      qs: { type: 'String', default: '' },
+      v: { type: 'Int', default: null },
+      h: { type: 'String', default: '' },
+      ho: { type: 'Bool', default: null },
+      t: { type: 'Int', default: null },
+      si: { type: 'Bool', default: false }
     }
 
-    const params  = parseParams( query, paramsConfig )
-    const qs      = params.qs
+    const params = parseParams(query, paramsConfig)
+    const qs = params.qs
     const version = params.v || await this.getCurrentVersion()
-    const t       = params.t
-    host          = params.h || host
-    var hostOnly  = params.ho
-    if ( hostOnly == null ) {
-      hostOnly = await this.getHostData( host ) || 0
+    const t = params.t
+    host = params.h || host
+    var hostOnly = params.ho
+    if (hostOnly == null) {
+      hostOnly = await this.getHostData(host) || 0
     }
 
     if (qs == 'm') {
@@ -313,7 +311,7 @@ export class checkredirect extends databases.redirects.rule {
     if (searchResult) {
       var ops = {}
 
-      var finalRedirect = searchResult.redirectPath;
+      var finalRedirect = searchResult.redirectURL;
 
       if (searchResult.operations?.length > 0) {
         ops = parseOperations(searchResult.operations)
@@ -356,10 +354,10 @@ export class checkredirect extends databases.redirects.rule {
       }
 
       if (searchResult) {
-        server.recordAnalytics(true, 'redirect', path, redirect.redirectPath);
+        server.recordAnalytics(true, 'redirect', path, redirect.redirectURL);
       }
 
-      return { ...searchResult, redirectPath: finalRedirect };
+      return { ...searchResult, redirectURL: finalRedirect };
     }
     else {
       return null
@@ -388,16 +386,18 @@ export class checkredirect extends databases.redirects.rule {
    */
   async searchRedirect(path, host, version, hostOnly, t, ignoreSlash) {
 
-    const path2 = path.endsWith( '/' ) ? path.slice( 0, path.length - 1 ) : path + '/';
+    const path2 = path.endsWith('/') ? path.slice(0, path.length - 1) : path + '/';
 
     // Get ALL of the redirects that match the path as well as the path variant with
     // or without a slash
     const ignoreSlashConditions = [
-        { operator: 'or', conditions: [
+      {
+        operator: 'or', conditions: [
           { attribute: 'path', comparator: 'equals', value: path },
           { attribute: 'path', comparator: 'equals', value: path2 },
-        ]}
-      ];
+        ]
+      }
+    ];
 
     const defaultConditions = [
       { attribute: 'path', comparator: 'equals', value: path },
@@ -407,66 +407,66 @@ export class checkredirect extends databases.redirects.rule {
       { conditions: ignoreSlash ? ignoreSlashConditions : defaultConditions }
     );
 
-    const results = await Array.fromAsync( searchResult )
+    const results = await Array.fromAsync(searchResult)
 
     let match = false
 
     // Filter out 
-    const filtered = results.filter( row => row.version == version )    // filter out incorrect versions
-      .filter( row => !( hostOnly && row.host != host ) )               // filter out hostOnly and host does not match
-      .filter( row => !(row.host?.length > 0 && host?.length == 0 ) )   // filter out rows with hosts and no host passed in
-      .filter( row => this.isRedirectValid( row, t ) )                  // filter out rows that do not match the right time
-      .filter( row => {
-        if ( row.host !== host && row.host.length == 0 ) {              // Return rows that don't match the host but the row host is not set
+    const filtered = results.filter(row => row.version == version)    // filter out incorrect versions
+      .filter(row => !(hostOnly && row.host != host))               // filter out hostOnly and host does not match
+      .filter(row => !(row.host?.length > 0 && host?.length == 0))   // filter out rows with hosts and no host passed in
+      .filter(row => this.isRedirectValid(row, t))                  // filter out rows that do not match the right time
+      .filter(row => {
+        if (row.host !== host && row.host.length == 0) {              // Return rows that don't match the host but the row host is not set
           return true
         }
-        if ( row.host === host ) {                                      // Return rows that match the host and record the match
+        if (row.host === host) {                                      // Return rows that match the host and record the match
           match = true
           return true
         }
       })
-      .filter( row => {
-        if ( match && row.host === host ) {                             // Return rows that match the host where there was a match recorded above
+      .filter(row => {
+        if (match && row.host === host) {                             // Return rows that match the host where there was a match recorded above
           return true
         }
         return !match                                                   // If not match set above, return true
       })
 
 
-    if ( filtered.length == 1 ) {
+    if (filtered.length == 1) {
       return filtered[0]
     }
-    if ( filtered.length == 2 ) {
-      const row = filtered.filter( row => row.path === path )
-      if ( row ) {
+    if (filtered.length == 2) {
+      const row = filtered.filter(row => row.path === path)
+      if (row) {
         return row[0]
       }
     }
-    
+
 
     {
-		  const conditions = [
-			  { attribute: 'regex', comparator: 'equals', value: true },
-		  ];
+      const conditions = [
+        { attribute: 'regex', comparator: 'equals', value: true },
+      ];
       const regexSearchResult = await databases.redirects.rule.search(conditions);
-      const regexes = await Array.fromAsync( regexSearchResult )
+      const regexes = await Array.fromAsync(regexSearchResult)
 
-      for ( const regexRecord of regexes ) {
-        const re = new RegExp( regexRecord.path )
+      for (const regexRecord of regexes) {
+        const re = new RegExp(regexRecord.path)
 
-        if ( path.match(re) ) {
+        if (path.match(re)) {
           if (this.isRedirectValid(regexRecord, t)) {
-            const newPath = path.replace( re, regexRecord.redirectPath )
+            const newPath = path.replace(re, regexRecord.redirectURL)
             return {
               ...regexRecord,
-              redirectPath: newPath
+              redirectURL: newPath
             }
           }
         }
       }
     }
 
-    
+
     return null;
   }
 

@@ -13,7 +13,7 @@ type rule @table(database: "redirects") @export {
     path: String @indexed
 
     # The path to redirect to (indexed for faster lookups)
-    redirectPath: String @indexed
+    redirectURL: String @indexed
 
     # The host name for the redirect (optional)
     host: String
