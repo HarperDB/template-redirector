@@ -1,13 +1,16 @@
+import 'dotenv/config';
 import assert from 'node:assert';
-import dotenv from 'dotenv';
 
-dotenv.config();
 const HOST = process.env.HOST;
+const PORT = process.env.PORT || 443;
+const OPPORT = process.env.OPPORT || 9925;
 const SCHEME = process.env.SCHEME;
 const AUTH = process.env.AUTH;
 const USERNAME = process.env.USERNAME;
 const PASSWORD = process.env.PASSWORD;
 const TOKEN = Buffer.from(`${USERNAME}:${PASSWORD}`).toString('base64');
+const REST_HOST = PORT == 443 ? HOST : `${HOST}:${PORT}`;
+const OP_HOST = `${HOST}:${OPPORT}`;
 
 const fetchWrapper = async (url, options) => {
 	if (AUTH === 'true') {
@@ -19,7 +22,7 @@ const fetchWrapper = async (url, options) => {
 };
 
 const clearTable = async (table) => {
-	const url = `${SCHEME}://${HOST}/${table}/`;
+	const url = `${SCHEME}://${REST_HOST}/${table}/`;
 
 	try {
 		const options = {
@@ -33,8 +36,8 @@ const clearTable = async (table) => {
 	}
 };
 
-const getItemCount = async (table) => {
-	const url = `${SCHEME}://${HOST}/${table}`;
+const getItemCount_44 = async (table) => {
+	const url = `${SCHEME}://${REST_HOST}/${table}`;
 
 	try {
 		const options = {
@@ -42,11 +45,34 @@ const getItemCount = async (table) => {
 		};
 		const resp = await fetchWrapper(url, options);
 		const data = await resp.json();
+		console.log(data);
 		return data.recordCount;
 	} catch (e) {
 		console.log(e);
 		return -1;
 	}
+};
+
+const getItemCount_45 = async (table) => {
+	const url = `${SCHEME}://${REST_HOST}/${table}?select(id)`;
+
+	try {
+		const options = {
+			method: 'GET',
+		};
+
+		const resp = await fetchWrapper(url, options);
+		const data = await resp.json();
+
+		return data.length;
+	} catch (e) {
+		console.log(e);
+		return -1;
+	}
+};
+
+const getItemCount = async (table) => {
+	return await getItemCount_45(table);
 };
 
 const defaultOptions = {
@@ -55,12 +81,13 @@ const defaultOptions = {
 	t: -1,
 	expectNotFound: false,
 	useHeader: false,
+	si: -1,
 };
 
 const checkRedirect = async (path, redirect, options) => {
 	options = { ...defaultOptions, ...options };
 
-	var url = `${SCHEME}://${HOST}/checkredirect`;
+	var url = `${SCHEME}://${REST_HOST}/checkredirect`;
 	var qs = [];
 
 	if (!options.useHeader) {
@@ -75,10 +102,15 @@ const checkRedirect = async (path, redirect, options) => {
 	if (options.t != -1) {
 		qs.push(`t=${options.t}`);
 	}
+	if (options.si != -1) {
+		qs.push(`si=${options.si}`);
+	}
 
 	if (qs.length > 0) {
 		url += '?' + qs.join('&');
 	}
+
+	console.log(url);
 
 	const fetchOptions = { method: 'GET' };
 	if (options.useHeader) {
@@ -88,6 +120,8 @@ const checkRedirect = async (path, redirect, options) => {
 	const resp = await fetchWrapper(url, fetchOptions);
 	const data = await resp.json();
 
+	//console.log( data )
+
 	if (options.expectNotFound) {
 		assert.equal(resp.status, 404);
 		return;
@@ -96,10 +130,12 @@ const checkRedirect = async (path, redirect, options) => {
 	assert.equal(resp.status, 200);
 	assert.equal(data.redirectURL, redirect);
 	assert.equal(data.statusCode, 301);
+
+	return true;
 };
 
 const getActiveVersion = async () => {
-	const url = `${SCHEME}://${HOST}/version/`;
+	const url = `${SCHEME}://${REST_HOST}/version/`;
 
 	try {
 		const options = {
@@ -118,7 +154,7 @@ const getActiveVersion = async () => {
 const setActiveVersion = async (version) => {
 	clearTable('version');
 
-	const url = `${SCHEME}://${HOST}/version/`;
+	const url = `${SCHEME}://${REST_HOST}/version/`;
 
 	const body = JSON.stringify({ activeVersion: version });
 
@@ -140,7 +176,7 @@ const setActiveVersion = async (version) => {
 };
 
 const addToHostTable = async (host, hostOnly) => {
-	const url = `${SCHEME}://${HOST}/hosts/`;
+	const url = `${SCHEME}://${REST_HOST}/hosts/`;
 
 	const body = JSON.stringify({ host: host, hostOnly: hostOnly });
 
