@@ -4,11 +4,9 @@
 
 The Redirector is a Harper component built to handle large-scale redirect needs. It enhances the performance and scalability of existing redirector applications, supporting use cases that require hundreds of thousands to millions of redirects.
 
-
 ### What is Harper
 
 Harper is a Composable Application Platform that merges database, cache, app logic, and messaging into a single runtime. Components like this plug directly into Harper, letting you build and scale distributed services fast, without managing separate systems. Built for geo-distributed apps with low latency and high uptime by default.
-
 
 ## Features
 
@@ -22,7 +20,7 @@ Harper is a Composable Application Platform that merges database, cache, app log
 
 ### Administration
 
-Customers can administer their redirect database by uploading a CSV of their redirects via the `/redirect` endpoint as well as
+Customers can administer their redirect database by uploading a CSV or JSON of their redirects via the `/redirect` endpoint as well as
 by using the Harper REST API against the tables.
 
 ### Query
@@ -35,9 +33,8 @@ The application records metrics associated with the redirect action.
 
 ## Getting Started
 
-1) `git clone https://github.com/HarperDB/template-redirector.git`
-2. `cd template-redirector`
-
+1. `git clone https://github.com/HarperDB/edmunds-redirector.git`
+2. `cd edmunds-redirector`
 3. `harperdb run .`
 
 This assumes you have the Harper stack already [installed]([Install HarperDB | HarperDB](https://docs.harperdb.io/docs/deployments/install-harperdb)) globally.
@@ -46,15 +43,16 @@ This assumes you have the Harper stack already [installed]([Install HarperDB | H
 
 ### Endpoints
 
-| Endpoint         | Description                                           |
-| ---------------- | ----------------------------------------------------- |
-| `/redirect`      | Uploading CSV or JSON files with redriects            |
-| `/checkredirect` | Query the redirector for a redirect                   |
-| `/rule`          | Direct REST endpoint for the rule table               |
-| `/hosts`         | Direct REST endpoint for the rule hosts               |
-| `/version`       | Direct REST endpoint for the active version table     |
+| Endpoint           | Description                                       |
+| ------------------ | ------------------------------------------------- |
+| `/redirect`        | Uploading CSV or JSON files with redriects        |
+| `/checkredirect`   | Query the redirector for a redirect               |
+| `/redirectmetrics` | Redirector usage metrics from last 90 seconds     |
+| `/rule`            | Direct REST endpoint for the rule table           |
+| `/hosts`           | Direct REST endpoint for the hosts table          |
+| `/version`         | Direct REST endpoint for the active version table |
 
-The Harper REST API gives low level control over your data. The first two endpoints are component level and provide higher level functionality. The last three enpdoints are direct access to Harper's REST API.  For a full description of what the REST API can do and how to use if your can refer to its [documentation](https://docs.harperdb.io/docs/developers/rest).
+The Harper REST API gives low level control over your data. The first two endpoints are component level and provide higher level functionality. The last three enpdoints are direct access to Harper's REST API. For a full description of what the REST API can do and how to use if your can refer to its [documentation](https://docs.harperdb.io/docs/developers/rest).
 
 ### Importing Redirects
 
@@ -80,24 +78,25 @@ CSV format:
 
 Fields (See `rule` table below for more information):
 
-|Name        |Required|Description                                            |
--------------|---------|------------------------------------------------------|
-|utcStartTime|No      |Time in unix epoch seconds to start applying the rule  |
-|utcEndTime  |No      |Time in unix epoch seconds to stop applying the rule   |
-|path        |Yes     |The path to match on.  This can be the path element of the URL or a full url. If it is the full URL the host will populate the host field below                             |
-|redirectURL |Yes     |The path or URL to redirect to                         |
-|host        |No      |The host to match on as well as the path. If empty, this rule can apply to any host.  See `ho` below |
-|version     |No      |Defaults to the current active version. The version that applies to this rule. See the `version` table below |
-|operations  |No      |See `operations` below under the `rule` table |
-|statusCode  |Yes     |The status code to return with the redirect (302, 302, 307, etc) |
-|regex       |No      |1 == `path` is a regex.  Default is `0` |
+| Name         | Required | Description                                                                                                                                    |
+| ------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| utcStartTime | No       | Time in unix epoch seconds to start applying the rule                                                                                          |
+| utcEndTime   | No       | Time in unix epoch seconds to stop applying the rule                                                                                           |
+| path         | Yes      | The path to match on. This can be the path element of the URL or a full url. If it is the full URL the host will populate the host field below |
+| redirectURL  | Yes      | The path or URL to redirect to                                                                                                                 |
+| host         | No       | The host to match on as well as the path. If empty, this rule can apply to any host. See `ho` below                                            |
+| version      | No       | Defaults to the current active version. The version that applies to this rule. See the `version` table below                                   |
+| operations   | No       | See `operations` below under the `rule` table                                                                                                  |
+| statusCode   | Yes      | The status code to return with the redirect (302, 302, 307, etc)                                                                               |
+| regex        | No       | 1 == `path` is a regex. Default is `0`                                                                                                         |
 
 Example file:
 
 ```
-utcStartTime,utcEndTime,path,redirectURL,host,version,operations,statusCode
-,,/oldpath,/newpath,,,,301
-1743120075,1743120135,/oldpath,/newpath,www.example.com,1,qs:perserve=1,302
+utcStartTime,utcEndTime,path,redirectURL,host,version,operations,statusCode,regex
+,,/oldpath,/newpath,,,,301,0
+1743120075,1743120135,/oldpath,/newpath,www.example.com,1,qs:perserve=1,302,0
+,,/oldpath/*,/newpath/,,qs:preserve=0,301,1
 ```
 
 JSON Format:
@@ -111,7 +110,8 @@ JSON Format:
     "version":"0",
     "redirectURL":"/s/events",
     "operations":"",
-    "statusCode":"301" },
+    "statusCode":"301",
+    "regex": 0 },
 ]}
 ```
 
@@ -121,7 +121,7 @@ Here is an example curl command to upload a CSV file:
 curl http://yourendpoint.com:9926/redirect --header "Content-type: text/csv" --data-binary @data/example.csv
 ```
 
-Note the use of `--data-binary`.  The `-d` switch will strip the newlines from your CSV file.
+Note the use of `--data-binary`. The `-d` switch will strip the newlines from your CSV file.
 
 ### Checking Redirects
 
@@ -143,13 +143,13 @@ The full available parameters are:
 
 | name | type   | description                                                                                                                                                                    |
 | ---- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| path | String | The path portion of the redirect or the full url including scheme and hostname.  If this is a full URL it overrides the `host` parameter if any                                |
+| path | String | The path portion of the redirect or the full url including scheme and hostname. If this is a full URL it overrides the `host` parameter if any                                 |
 | h    | String | Host - The hostname to match on (optional)                                                                                                                                     |
 | v    | Int    | Version - The redirect version to match on (optional)                                                                                                                          |
 | ho   | Int    | hostOnly - a flag that indicates that whjen a hostname is used, and there is no match for that hostname, whether the global 'no hostname' entried should be checked (optional) |
 | t    | Int    | Time - Override the time to this epoch time for testing (optional)                                                                                                             |
-| qs   | String | Direction for handling a querystring in the path. `i` == ignore (default) `m` == match (optional)                                                                              |
-| si   | Int    | Whether to ignore a terminating slash on a check: /dir and /dir/ will match /dir. 1 == on                                                                                               |
+| qs   | String | Direction for handling a querystring in the path. `i` == ignore or `m` == match (default) (optional)                                                                           |
+| si   | Int    | Whether to ignore a terminating slash on a check: /dir and /dir/ will match /dir. 1 == on (default is 0 / off)                                                                 |
 
 For example, this query:
 
@@ -157,33 +157,53 @@ For example, this query:
 GET /checkredirect?path=/your/path&h=www.example.com&ho=1
 ```
 
-Will search the rule table for the specified path and hostname.  If there is no match, it will NOT search again for a global entry without a hostname.  This query is equivalent:
+Will search the rule table for the specified path and hostname. If there is no match, it will NOT search again for a global entry without a hostname. This query is equivalent:
 
 ```
 GET /checkredirect?path=https://www.example.com/your/path&ho=1
 ```
 
 > [!NOTE]
-> 
-> If you need to pass in the querystring for matching or copying to the redirect, you mush use the Path header for the path element.  The remaining parameters if used will still go in the query string.
+> Options for passing in querystrings with the path
+>
+> 1. /checkdirect/{fullUrl_with_querystring}
+>    ex: /checkdirect/https://www.example.com/page-name?key=val&arg=val2
+>    All other params will **not** be applied with this option
+>
+> 2. /checkdirect?path={url_no_querystring}
+>    ex: /checkdirect?path=/page-name&h=www.example.com
+>    Path specific query string added to `x-query-string` header
+>    All other params will still go in the query string
+>
+> 3. /checkdirect?{other_params}
+>    ex: /checkdirect?h=www.example.com&ho=1
+>    Path goes in `Path` header (ex: 'path': '/page-name')
+>    Path specific query string added to `x-query-string` header (ex: 'x-query-string': '?key=var&arg=val2)
+>    All other params will still go in the query string
+>
+> 4. /checkdirect?{other_params}
+>    ex: /checkdirect?h=www.example.com&ho=1
+>    Path goes in `Path` header with query string (ex: 'path': '/page-name?key=var&arg=val2)
+>    All other params will still go in the query string
 
 ### Per host configuration
 
-The redirector has a table for storing meta information for hosts. It currently support indicating where a host can match on the global non-host specific entries ( those without a hostname ).  This is intended as safety feature to prevent accidentally matching on an unintended redirect.  This can be overridden with the `ho` query attribute.
+The redirector has a table for storing meta information for hosts. It currently supports indicating where a host can match on the global non-host specific entries ( those without a hostname ). This is intended as safety feature to prevent accidentally matching on an unintended redirect. This can be overridden with the `ho` query attribute.
 
 ### Versioning
 
-The redirector supports versioning of the rules. Each rule can take an integer version number with a default of `0`. The intention is to enable cut-over and roll-back for a large number of redirects at the same time.  The `version` table (schema below) holds the active version.  Updating this table will update the version number that is added to the lookup.  This can be overridded by the `v` query parameter.
+The redirector supports versioning of the rules. Each rule can take an integer version number with a default of `0`. The intention is to enable cut-over and roll-back for a large number of redirects at the same time. The `version` table (schema below) holds the active version. Updating this table will update the version number that is added to the lookup. This can be overridded by the `v` query parameter.
 
 ### Checking Logic
 
 When checking for a redirect the system will perform checks in this order
+
 - First filter by version
 - Then filter by hostname if hostOnly (ho) is true
 - Then filter by time constraints
 - It will then return the most 'exact' match with exact defined as:
-  - Match host first, then path (with or without the flexible end slash handling)
-  - Match without host next, then path (with or without the flexible end slash handling)
+  - Match host first, then path (with or without the flexible end slash handling and query string)
+  - Match without host next, then path (with or without the flexible end slash handling and query string)
 - If there is still no match, the defined regular expressions will be used
 
 ## Data Model
@@ -192,23 +212,23 @@ When checking for a redirect the system will perform checks in this order
 
 The `rule` table in the `redirects` database stores redirect entries with the following structure:
 
-| Name           | Description                                                    |
-| -------------- | -------------------------------------------------------------- |
-| `id`           | Unique identifier (Primary Key)                                |
-| `utcStartTime` | Activation start time in epoch (optional)                      |
-| `utcEndTime`   | Activation end time in epoch (optional)                        |
-| `host`         | The hostname to match for the redirect. '*' for a globla rule. |
-| `version`      | The redirect version batch (optional)                          |
-| `path`         | Incoming URL path to match                                     |
-| `redirectURL`  | URL to redirect to                                             |
-| `statusCode`   | HTTP status code for the redirect (default: 301)               |
-| `operation`    | Special opertaion on the incoming / outgoign path (see below)  |
-| `lastAccessed` | Timestamp of last access                                       |
-| `regex`        | Boolean flas that indicated the `path` is a regex              |
+| Name           | Description                                                     |
+| -------------- | --------------------------------------------------------------- |
+| `id`           | Unique identifier (Primary Key)                                 |
+| `utcStartTime` | Activation start time in epoch (optional)                       |
+| `utcEndTime`   | Activation end time in epoch (optional)                         |
+| `host`         | The hostname to match for the redirect. '\*' for a globla rule. |
+| `version`      | The redirect version batch (optional)                           |
+| `path`         | Incoming URL path to match                                      |
+| `redirectURL`  | URL to redirect to                                              |
+| `statusCode`   | HTTP status code for the redirect (default: 301)                |
+| `operation`    | Special operation on the incoming / outgoing path (see below)   |
+| `lastAccessed` | Timestamp of last access                                        |
+| `regex`        | Boolean flas that indicated the `path` is a regex               |
 
 #### `path` and `redirectURL` field
 
-The `path` field can either be a literal match or a regular expression.  If the `regex` field is `true`, `path` will be interpreted as a regex. The regex can perform normal match capturing which can then be used in the redirectURL.  This is effectively `/path/replacementURL/` if `/path/` matches the incomming URL.  This is currently a single match / replacement.  For example, if you have a `path` defined as:
+The `path` field can either be a literal match or a regular expression. If the `regex` field is `true`, `path` will be interpreted as a regex. The regex can perform normal match capturing which can then be used in the redirectURL. This is effectively `/path/replacementURL/` if `/path/` matches the incomming URL. This is currently a single match / replacement. For example, if you have a `path` defined as:
 
 ```
 /foo/(.*)
@@ -224,14 +244,18 @@ and a redirectURL as:
 
 #### Operations Field
 
-The `operation` field is intended to indicate special handling for the redirect.  The current operations are:
+The `operation` field is intended to indicate special handling for the redirect. The current operations are:
 
 | Operation | Command  | Value  | Decription                                                |
 | --------- | -------- | ------ | --------------------------------------------------------- |
 | qs        | preserve | 0/1    | 1 == copy QS to redirect. 0 == do not copy QS to redirect |
 |           | filter   | qs arg | Name of a qs arg to filter from the copy                  |
 
-`preserve == 0` and the use of `filter` are mutually exclusive.  `filter` implies the use of `preserve=1`
+`preserve` and `filter` are mutually exclusive. Use of `preserve` ignores `filter`:
+
+- `preserve=0` no qs is included
+- `preserve=1` the full qs is included
+- `filter` portions of qs are included
 
 Example: Remove arg2 from the copied output
 
@@ -251,43 +275,45 @@ Example: Copy the incomming query string to the redirect
 qs:preserve=1
 ```
 
-### Version table
+### Hosts Table
 
-The `version` table in the `redirect` database stores the active version. This is intended to be a single row table 
+| **Name**   | **Description**                                       |
+| ---------- | ----------------------------------------------------- |
+| `id`       | Unique identifier for the host entry.                 |
+| `host`     | The host name for the redirect (optional).            |
+| `hostOnly` | The path to redirect to (indexed for faster lookups). |
 
-- `activeVersion`: The integer version number that should be active
+### Version Table
 
-### Host Table
-
-The `hosts` table in the `redirect` database stores the per host information.
-
-- `host`: The version code (Primary Key)
-- `hostOnly`: A boolean that determines if a rules without a hostname can be applied to this host
+| **Name**        | **Description**                          |
+| --------------- | ---------------------------------------- |
+| `id`            | Unique identifier for the version entry. |
+| `activeVersion` | currently active version number          |
 
 ## API Endpoints
 
-1. `POST /redirect`: Import redirect rules from CSV
+1. `POST /redirect`: Import redirect rules from CSV or JSON
 2. `GET /checkredirect`: Check if a URL has a redirect
-3. `GET /redirectmetrics`: Retrieve redirect usage metrics
+3. `GET /redirectmetrics`: Retrieve redirect usage metrics from last 90 seconds
 
 ## Harper Endpoints
 
-The Harper REST API give low level control over your data.  The above calls are component level and provide higher
+The Harper REST API give low level control over your data. The above calls are component level and provide higher
 level functionality. For a full description of what the REST API can do and how to use if your can refer to
 its [documentaion](https://docs.harperdb.io/docs/developers/rest)
 
 ### Create
 
 > [!NOTE]
-> 
-> These examples for creating records in the rule are illustrative only.  Please use the `/redirect` endpoing for adding redirects.
+>
+> These examples for creating records in the rule are illustrative only. Please use the `/redirect` endpoing for adding redirects.
 
 ```
 POST /rule
 Content-type: application/json
 Content-length: <CL of body>
 
-{"path":"/foo","redirectURL":"/bar","statusCode":304}        
+{"path":"/foo","redirectURL":"/bar","statusCode":304}
 ```
 
 ```
@@ -348,18 +374,14 @@ The file `test/redirector-test.js` has regression tests with the intention of co
 node --test
 ```
 
-The test uses a `.env` file at the componet root for configuration:
+The test uses a `.env` file at the component root for configuration:
 
-| Field    | Description                                |
-| -------- | ------------------------------------------ |
-| HOST     | The host to connect to                     |
-| PORT     | The port to use for normal HTTP calls (443)|
-| OPPORT   | The operations port (9925)                 |
-| SCHEME   | http or https                              |
-| AUTH     | Should HTTP Basic auth be sent? true/false |
-| USERNAME | The username for basic auth                |
-| PASSWORD | The passowrd for basic auth                |
-
-### Production Environment (Recommended)
-
-TBD
+| Field    | Description                                 |
+| -------- | ------------------------------------------- |
+| HOST     | The host to connect to                      |
+| PORT     | The port to use for normal HTTP calls (443) |
+| OPPORT   | The operations port (9925)                  |
+| SCHEME   | http or https                               |
+| AUTH     | Should HTTP Basic auth be sent? true/false  |
+| USERNAME | The username for basic auth                 |
+| PASSWORD | The password for basic auth                 |

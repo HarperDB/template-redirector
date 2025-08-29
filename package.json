@@ -1,20 +1,17 @@
 {
   "name": "redirector-template",
-  "version": "2.0.0",
-  "description": "",
+  "version": "1.0.0",
+  "description": "Template Redirector Component",
   "main": "resources.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "harperdb dev .",
+    "start": "harperdb run .",
+    "load_data": "node util/load_sample_data.js",
+    "clear_data": "node util/clear_data.js"
   },
-  "author": "",
-  "license": "MIT",
   "type": "module",
   "dependencies": {
-    "harperdb": "^4.4.16",
-    "papaparse": "^5.4.1",
-    "httplog": "https://github.com/HarperDB/httplog.git#0.2.0"
-  },
-  "devDependencies": {
-    "dotenv": "^16.4.7"
+    "dotenv": "^17.2.1",
+    "papaparse": "^5.4.1"
   }
 }

@@ -217,7 +217,7 @@
             "host": "",
             "version": "0",
             "redirectURL": "/dir2/other2",
-            "operations": "qs:preserve=0",
+            "operations": "qs:strip=1",
             "statusCode": "301"
         },
         {
@@ -253,250 +253,44 @@
         {
             "utcStartTime": "",
             "utcEndTime": "",
-            "path": "/foo/(.*)",
+            "path": "/dir1/*",
             "host": "",
             "version": "0",
-            "redirectURL": "/bar/$1",
-            "operations": "",
+            "redirectURL": "/dir2/",
+            "operations": "qs:preserve=1",
             "statusCode": "301",
-            "isRegex": "1"
+            "regex": 1
         },
         {
             "utcStartTime": "",
             "utcEndTime": "",
-            "path": "/dir3/dir4",
+            "path": "/dir11/*",
             "host": "",
             "version": "0",
-            "redirectURL": "/dir3/dir4/dir5",
-            "operations": "",
+            "redirectURL": "/dir99/",
+            "operations": "qs:preserve=0",
             "statusCode": "301",
-            "isRegex": "0"
+            "regex": 1
         },
         {
             "utcStartTime": "",
             "utcEndTime": "",
-            "path": "/dir3/dir4/",
+            "path": "/shop/outfits",
             "host": "",
             "version": "0",
-            "redirectURL": "/dir3/dir4/dir6",
-            "operations": "",
-            "statusCode": "301",
-            "isRegex": "0"
-        },
-        {
-            "utcStartTime": "",
-            "utcEndTime": "",
-            "path": "/dir3/dir5",
-            "host": "",
-            "version": "0",
-            "redirectURL": "/dir3/dir4/dir5",
-            "operations": "",
-            "statusCode": "301",
-            "isRegex": "0"
-        },
-        {
-            "utcStartTime": "",
-            "utcEndTime": "",
-            "path": "/dir3/dir4",
-            "host": "www.example.com",
-            "version": "0",
-            "redirectURL": "/dir3/dir4/dir7",
-            "operations": "",
-            "statusCode": "301",
-            "isRegex": "0"
-        },
-        {
-            "utcStartTime": "",
-            "utcEndTime": "",
-            "path": "/dir3/dir4",
-            "host": "www.example2.com",
-            "version": "0",
-            "redirectURL": "/dir3/dir4/dir7",
-            "operations": "",
-            "statusCode": "301",
-            "isRegex": "0"
-        },
-        {
-            "utcStartTime": "",
-            "utcEndTime": "",
-            "path": "/dir3/dir4/",
-            "host": "www.example2.com",
-            "version": "0",
-            "redirectURL": "/dir3/dir4/dir8",
-            "operations": "",
-            "statusCode": "301",
-            "isRegex": "0"
-        },
-        {
-            "utcStartTime": "",
-            "utcEndTime": "",
-            "path": "/dir3/dir4",
-            "host": "",
-            "version": "1",
-            "redirectURL": "/dir3/dir4/dir9",
-            "operations": "",
-            "statusCode": "301",
-            "isRegex": "0"
+            "redirectURL": "/shop/deals",
+            "operations": "qs:filter=top&filter=fab",
+            "statusCode": "302",
+            "regex": 0
         }
     ],
-    "errors": [
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 0
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 1
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 2
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 3
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 4
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 5
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 6
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 7
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 8
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 9
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 10
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 11
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 12
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 13
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 14
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 15
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 16
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 17
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 18
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 19
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 20
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 21
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 22
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 23
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 24
-        }
-    ],
+    "errors": [],
     "meta": {
         "delimiter": ",",
         "linebreak": "\n",
         "aborted": false,
         "truncated": false,
-        "cursor": 1820,
+        "cursor": 1458,
         "renamedHeaders": null,
         "fields": [
             "utcStartTime",
@@ -507,7 +301,7 @@
             "redirectURL",
             "operations",
             "statusCode",
-            "isRegex"
+            "regex"
         ]
     }
 }

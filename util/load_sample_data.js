@@ -1,28 +1,27 @@
-import 'dotenv/config'
-import fs from 'fs'
+import dotenv from 'dotenv';
+import fs from 'fs';
 
-const HOST   = process.env.HOST
-const SCHEME = process.env.SCHEME
-const PORT   = process.env.PORT   || 443
-const REST_HOST = PORT == 443 ? HOST : `${HOST}:${PORT}`
+dotenv.config();
+const HOST = process.env.HOST;
+const SCHEME = process.env.SCHEME;
 
-const csvfile = 'data/example.csv'
-const csv_content = fs.readFileSync( csvfile, 'utf8' )
+const csvfile = 'data/example.csv';
+const csv_content = fs.readFileSync(csvfile, 'utf8');
 
-const url = `${SCHEME}://${REST_HOST}/redirect`
+const url = `${SCHEME}://${HOST}/redirect`;
+console.info(`Loading sample data to ${url}`);
 
 try {
-  const options = {
-    method: "POST",
-    headers: {
-      "Content-type": "text/csv"
-    },
-    body: csv_content
-  }
-  const resp = await fetch( url, options )
-  const data = await resp.json()
-  console.log( data )
-}
-catch( e ) {
-  console.log( e.message )
+	const options = {
+		method: 'POST',
+		headers: {
+			'Content-type': 'text/csv',
+		},
+		body: csv_content,
+	};
+	const resp = await fetch(url, options);
+	const data = await resp.json();
+	console.info('Sample data loaded successfully:', data);
+} catch (e) {
+	console.error(`Error loading sample data:`, e);
 }

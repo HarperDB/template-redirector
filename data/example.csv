@@ -1,4 +1,4 @@
-utcStartTime,utcEndTime,path,host,version,redirectURL,operations,statusCode,isRegex
+utcStartTime,utcEndTime,path,host,version,redirectURL,operations,statusCode,regex
 ,,/shop/live-shopping,,0,/s/events,,301
 ,,/p/shirts/,www.example.com,0,/shop/mens-clothing/shirts?id=1234,,301
 ,,/p/hats/,www.example.com,0,/shop/mens-clothing/hats?id=1234,,301
@@ -24,11 +24,6 @@ utcStartTime,utcEndTime,path,host,version,redirectURL,operations,statusCode,isRe
 ,,/dir2/file3,,0,/dir2/other3,qs:preserve=1,301
 ,,/dir2/file4,,0,/dir2/other4,qs:filter=arg1,301
 ,,/dir2/file5,,0,/dir2/other5,qs:filter=arg1&filter=arg2,301
-,,/foo/(.*),,0,/bar/$1,,301,1
-,,/dir3/dir4,,0,/dir3/dir4/dir5,,301,0
-,,/dir3/dir4/,,0,/dir3/dir4/dir6,,301,0
-,,/dir3/dir5,,0,/dir3/dir4/dir5,,301,0
-,,/dir3/dir4,www.example.com,0,/dir3/dir4/dir7,,301,0
-,,/dir3/dir4,www.example2.com,0,/dir3/dir4/dir7,,301,0
-,,/dir3/dir4/,www.example2.com,0,/dir3/dir4/dir8,,301,0
-,,/dir3/dir4,,1,/dir3/dir4/dir9,,301,0
+,,/dir1/*,,0,/dir2/,qs:preserve=1,301,1
+,,/dir11/*,,0,/dir99/,qs:preserve=0,301,1
+,,/shop/outfits,,0,/shop/deals,qs:filter=top&filter=fab,302,0
