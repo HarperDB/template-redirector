@@ -1,3 +1,4 @@
+import { performance } from 'node:perf_hooks';
 import querystring from 'node:querystring';
 import { parseOperations, parseParams, parseQuery } from './parse.js';
 import { allowedUserRoles } from '../utils/constants.js';
@@ -36,6 +37,7 @@ export class CheckRedirect extends databases.redirects.rule {
 	 * @returns {Promise<Object|null>} - Redirect rule with final URL, or null if not found.
 	 */
 	async get(query) {
+		const t1 = performance.now();
 		const context = this.getContext();
 		const queryPath = this.getId();
 		let [host, path, qString] = parseQuery(queryPath, query, context);
@@ -70,6 +72,7 @@ export class CheckRedirect extends databases.redirects.rule {
 		}
 
 		// Perform rule lookup
+		const t2 = performance.now();
 		let searchResult;
 		const searchObj = { path, host, version, hostOnly, t, si, qs, qString };
 		searchResult = await this.searchStaticRedirect(searchObj);
@@ -78,6 +81,7 @@ export class CheckRedirect extends databases.redirects.rule {
 		}
 
 		if (searchResult) {
+			const t3 = performance.now();
 			let ops = {};
 			let finalRedirect = searchResult.redirectURL;
 
@@ -116,12 +120,17 @@ export class CheckRedirect extends databases.redirects.rule {
 				}
 			}
 
-			if (searchResult) {
-				server.recordAnalytics(true, 'redirect', path, redirect.redirectURL);
-			}
+			const t4 = performance.now();
+			server.recordAnalytics(t3 - t2, 'redirect-search-timing', usedRegexSearch);
+			server.recordAnalytics(t4 - t1, 'redirect-timing', usedRegexSearch);
+			server.recordAnalytics(true, 'redirect', path, 'GET', finalRedirect);
 
 			return { ...searchResult, redirectURL: finalRedirect };
 		} else {
+			const t3 = performance.now();
+			server.recordAnalytics(t3 - t2, 'redirect-search-timing', usedRegexSearch);
+			server.recordAnalytics(t3 - t1, 'redirect-timing', usedRegexSearch);
+
 			return null;
 		}
 	}

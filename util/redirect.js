@@ -1,3 +1,4 @@
+import { performance } from 'node:perf_hooks';
 import Papa from 'papaparse';
 import { allowedUserRoles } from '../utils/constants.js';
 import { parseURLPath } from '../utils/parse.js';
@@ -32,6 +33,7 @@ export class Redirect extends databases.redirects.rule {
 	 * @returns {Promise<Object>} - Summary of import with success message and skipped items.
 	 */
 	async post(data) {
+		const t1 = performance.now();
 		let json;
 
 		if (data.contentType == 'text/csv') {
@@ -44,6 +46,9 @@ export class Redirect extends databases.redirects.rule {
 		}
 
 		const results = await this.processRedirects(json.data);
+
+		const t2 = performance.now();
+		server.recordAnalytics(t2 - t1, 'redirect-upload-timing');
 
 		return {
 			message: `Successfully loaded ${results.success} redirects.`,
@@ -73,6 +78,7 @@ export class Redirect extends databases.redirects.rule {
 
 		let batch = [];
 		for (const item of redirects) {
+			const t1 = performance.now();
 			try {
 				if (!this.validateRedirect(item, skipped)) continue;
 
@@ -132,6 +138,9 @@ export class Redirect extends databases.redirects.rule {
 				const postObject = this.createPostObject(item);
 				batch.push({ postObject });
 				success++;
+
+				const t2 = performance.now();
+				server.recordAnalytics(t2 - t1, 'redirect-upload-process-timing');
 
 				if (batch.length >= batchSize) {
 					await this.flushBatch(batch);
