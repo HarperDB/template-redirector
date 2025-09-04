@@ -41,54 +41,54 @@ export class RedirectMetrics extends Resource {
 					{ attribute: 'id', value: range[0], comparator: 'greater_than_equal' },
 				],
 			});
-		} else {
-			const timingType = query.get('type');
-			logger.info(`Retrieving ${timingType} metrics for last 60 seconds`);
-			const conditions = [{ attribute: 'id', value: range[0], comparator: 'greater_than_equal' }];
-
-			if (timingType === 'redirect-search-timing') {
-				conditions.push({
-					attribute: 'metric',
-					value: 'redirect-search-timing',
-					comparator: 'equals',
-				});
-			} else if (timingType === 'redirect-timing') {
-				conditions.push({ attribute: 'metric', value: 'redirect-timing', comparator: 'equals' });
-			} else if (timingType === 'redirect-upload-timing') {
-				conditions.push({
-					attribute: 'metric',
-					value: 'redirect-upload-timing',
-					comparator: 'equals',
-				});
-			} else if (timingType === 'redirect-upload-process-timing') {
-				conditions.push({
-					attribute: 'metric',
-					value: 'redirect-upload-process-timing',
-					comparator: 'equals',
-				});
-			} else {
-				return {
-					message: 'Invalid redirect timing type',
-				};
-			}
-
-			const results = await hdb_analytics.search({ conditions });
-
-			let timing = {};
-			for await (const result of results) {
-				timing = {
-					metric: timingType,
-					period: range,
-					unit: 'ms',
-					avg: result.mean.toFixed(3) || 0,
-					p50: result.median.toFixed(3) || 0,
-					p90: result.p90.toFixed(3) || 0,
-					p95: result.p95.toFixed(3) || 0,
-				};
-				break;
-			}
-
-			return timing;
 		}
+
+		const timingType = query.get('type');
+		logger.info(`Retrieving ${timingType} metrics for last 60 seconds`);
+		const conditions = [{ attribute: 'id', value: range[0], comparator: 'greater_than_equal' }];
+
+		if (timingType === 'redirect-search-timing') {
+			conditions.push({
+				attribute: 'metric',
+				value: 'redirect-search-timing',
+				comparator: 'equals',
+			});
+		} else if (timingType === 'redirect-timing') {
+			conditions.push({ attribute: 'metric', value: 'redirect-timing', comparator: 'equals' });
+		} else if (timingType === 'redirect-upload-timing') {
+			conditions.push({
+				attribute: 'metric',
+				value: 'redirect-upload-timing',
+				comparator: 'equals',
+			});
+		} else if (timingType === 'redirect-upload-process-timing') {
+			conditions.push({
+				attribute: 'metric',
+				value: 'redirect-upload-process-timing',
+				comparator: 'equals',
+			});
+		} else {
+			return {
+				message: 'Invalid redirect timing type',
+			};
+		}
+
+		const results = await hdb_analytics.search({ conditions });
+
+		let timing = {};
+		for await (const result of results) {
+			timing = {
+				metric: timingType,
+				period: range,
+				unit: 'ms',
+				avg: result.mean.toFixed(3) || 0,
+				p50: result.median.toFixed(3) || 0,
+				p90: result.p90.toFixed(3) || 0,
+				p95: result.p95.toFixed(3) || 0,
+			};
+			break;
+		}
+
+		return timing;
 	}
 }

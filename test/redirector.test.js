@@ -198,7 +198,7 @@ describe('Check if a redirect does not exists using the Path header', () => {
 });
 
 describe('Update a record with start and end times and retrieve', () => {
-	var id;
+	let id;
 
 	it('Should get the ID of the record we want to update', async () => {
 		const url = `${SCHEME}://${REST_HOST}/checkredirect?path=${check_path}`;
@@ -336,7 +336,7 @@ test('Set the version in the version table and then query', { serial: true }, as
 	});
 
 	const path = '/p/dresses/';
-	var redirect = '/shop/dresses/v1';
+	let redirect = '/shop/dresses/v1';
 
 	await t.test('fetching', async () => {
 		await checkRedirect(path, redirect);
@@ -347,7 +347,7 @@ test('Set the version in the version table and then query', { serial: true }, as
 		assert.equal(await getActiveVersion(), 0);
 	});
 
-	var redirect = '/shop/dresses/v0';
+	redirect = '/shop/dresses/v0';
 
 	await t.test('fetching', async () => {
 		await checkRedirect(path, redirect);
@@ -356,7 +356,7 @@ test('Set the version in the version table and then query', { serial: true }, as
 
 describe('Check a query with the t parameter', async () => {
 	const path = '/p/shirts/help/';
-	var redirect = '/info/finding-the-perfect-shirt';
+	let redirect = '/info/finding-the-perfect-shirt';
 
 	it('fetching', async () => {
 		await checkRedirect(path, redirect, { expectNotFound: true });
@@ -369,7 +369,7 @@ describe('Check a query with the t parameter', async () => {
 
 describe('Set the host table and play with hostOnly', async () => {
 	const path = '/p/makeup/';
-	var redirect = '/shop/makeup-and-perfume';
+	let redirect = '/shop/makeup-and-perfume';
 
 	it('Should set the host table', async () => {
 		await clearTable('hosts');

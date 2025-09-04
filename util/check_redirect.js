@@ -208,8 +208,6 @@ export class CheckRedirect extends databases.redirects.rule {
 	 * @returns {Promise<Object|null>} A single matched redirect rule or `null` if none.
 	 */
 	async searchRegexRedirect(searchObj) {
-		const BATCH_SIZE = 100;
-
 		// Build search conditions
 		const { path, t } = searchObj;
 		const conditions = buildSearchConditions({ ...searchObj, isRegexSearch: true });
