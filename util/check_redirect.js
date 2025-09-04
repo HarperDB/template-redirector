@@ -1,11 +1,18 @@
 import querystring from 'node:querystring';
-import { parseOperations, parseParams } from './parse.js';
+import { parseOperations, parseParams, parseQuery } from './parse.js';
 import { allowedUserRoles } from '../utils/constants.js';
-import { getCurrentVersion, getHostData } from './get_current_config.js';
+import { getCurrentVersion, getHostData, isRedirectValid } from './get_current_config.js';
+import { buildSearchConditions } from './search_conditions.js';
 
 /**
- * Class representing the checkredirect functionality.
- * Handles checking if a given URL has a redirect rule.
+ * Class for the /checkredirect endpoint custom functionality.
+ *
+ * Responsibilities:
+ * - Authorize read access based on user role.
+ * - Parse request context (path, host, query string).
+ * - Look up redirect rules by path, host, version, and query string.
+ * - Support filtering by time, host-only mode, and query string behavior.
+ * - Apply redirect operations (e.g., preserving or filtering query params).
  */
 export class CheckRedirect extends databases.redirects.rule {
 	static DEFAULT_VERSION = 0;
@@ -20,27 +27,27 @@ export class CheckRedirect extends databases.redirects.rule {
 		return allowedUserRoles.includes(user?.role?.id);
 	}
 
-	static parsePath(path, context, query) {
-		return query.get('path') ?? context?.headers?.get('path');
-	}
-
 	/**
-	 * Checks if a given URL has a redirect rule.
-	 * @returns {Object|null} The redirect rule if found, null otherwise.
+	 * Checks whether a given request path/host/version has a redirect rule.
+	 * Applies query string operations (preserve, ignore, filter) if configured.
+	 * Records analytics if a redirect is found.
+	 *
+	 * @param {Object} query - Request query parameters.
+	 * @returns {Promise<Object|null>} - Redirect rule with final URL, or null if not found.
 	 */
 	async get(query) {
 		const context = this.getContext();
+		const queryPath = this.getId();
+		let [host, path, qString] = parseQuery(queryPath, query, context);
+		logger.info('Checking redirect for query:', { host, path, qString });
 
-		/* Query string parameters take priority */
-		var path = this.getId();
-
-		// Log the path if the httplog extension is in use
-		context.httplog?.addCustomField(path);
-
-		var [host, path, qstring] = parseURLPath(path);
+		if (path === '') {
+			// Return if no path provided to find redirect
+			return null;
+		}
 
 		const paramsConfig = {
-			qs: { type: 'String', default: '' },
+			qs: { type: 'String', default: 'm' },
 			v: { type: 'Int', default: null },
 			h: { type: 'String', default: '' },
 			ho: { type: 'Bool', default: null },
@@ -48,56 +55,63 @@ export class CheckRedirect extends databases.redirects.rule {
 			si: { type: 'Bool', default: false },
 		};
 
+		// Parse params with defaults
 		const params = parseParams(query, paramsConfig);
-		const qs = params.qs;
+		const qs = params.qs; // 'i' ignore or defaults to match ('m')
 		const version = params.v || (await getCurrentVersion());
 		const t = params.t;
+		const si = params.si; // ignore trailing slash, defaults to false
 		host = params.h || host;
-		var hostOnly = params.ho;
-		if (hostOnly == null) {
+
+		// Host-only behavior: use param, fallback to host settings
+		let hostOnly = params.ho; // match for exact host, defaults to false
+		if (hostOnly === null) {
 			hostOnly = (await getHostData(host)) || 0;
 		}
 
-		if (qs == 'm') {
-			path += qstring;
+		// Perform rule lookup
+		let searchResult;
+		const searchObj = { path, host, version, hostOnly, t, si, qs, qString };
+		searchResult = await this.searchStaticRedirect(searchObj);
+		if (!searchResult) {
+			searchResult = await this.searchRegexRedirect(searchObj);
 		}
 
-		const searchResult = await this.searchRedirect(path, host, version, hostOnly, t, params.si);
-
 		if (searchResult) {
-			var ops = {};
+			let ops = {};
+			let finalRedirect = searchResult.redirectURL;
 
-			var finalRedirect = searchResult.redirectURL;
-
+			// Parse redirect operations if configured
 			if (searchResult.operations?.length > 0) {
 				ops = parseOperations(searchResult.operations);
 			}
 
+			// Apply query string operations
 			if (ops.hasOwnProperty('qs')) {
 				const hasPreserve = ops.qs.hasOwnProperty('preserve');
+				const preserve = parseInt(ops.qs?.preserve, 10) === 1;
 
-				const preserve = ops.qs?.preserve == 1 ? true : false;
-
-				if (hasPreserve && ops.qs.preserve == 1) {
-					finalRedirect += qstring;
-				} else if (hasPreserve && ops.qs.preserve == 0) {
-					// NOOP
+				if (hasPreserve && preserve) {
+					// Append full query string
+					finalRedirect += qString;
+				} else if (hasPreserve && !preserve) {
+					// Ignore query string (NOOP)
 				} else if (ops.qs?.filter != undefined) {
-					// grap the operation filter args as an array
+					// Filter specific query params
 					const filterArgs = Array.isArray(ops.qs.filter) ? ops.qs.filter : [ops.qs.filter];
 
-					// Parse the query string from the Path (skip the '?')
-					const q = querystring.parse(qstring.slice(1));
+					// Parse the query string into an object (skip the '?')
+					const q = querystring.parse(qString.slice(1));
 
 					// Remove the desired arguments
 					for (const arg of filterArgs) {
 						delete q[arg];
 					}
 
-					const newqs = querystring.stringify(q);
-
-					if (newqs.length > 0) {
-						finalRedirect += '?' + newqs;
+					// Rebuild query string if anything remains
+					const newQs = querystring.stringify(q);
+					if (newQs.length > 0) {
+						finalRedirect += '?' + newQs;
 					}
 				}
 			}
@@ -113,86 +127,54 @@ export class CheckRedirect extends databases.redirects.rule {
 	}
 
 	/**
-	 * Searches for a redirect rule matching the given URL.
-	 * @param {string} path - The URL to match against.
-	 * @returns {Object|null} The matching redirect rule if found, null otherwise.
+	 * Search for a static redirect rule that matches the given criteria.
+	 *
+	 * The criteria are passed as a single `searchObj`, which controls scope (host/version),
+	 * path handling (slash-insensitive, host-only), and query-string behavior.
+	 *
+	 * @param {Object} searchObj - Search criteria.
+	 * @param {string} searchObj.path - The path to search for.
+	 * @param {string} searchObj.host - The host to search for.
+	 * @param {number} searchObj.version - The version to search for.
+	 * @param {boolean} searchObj.hostOnly - Whether to only match the host.
+	 * @param {boolean} searchObj.si - Whether to ignore trailing slashes.
+	 * @param {string} searchObj.qs - Whether to include query strings.
+	 * @param {string} searchObj.qString - The query string value.
+	 * @returns {Promise<Object|null>} A single matched redirect rule or `null` if none.
 	 */
-	async searchRedirect(path, host, version, hostOnly, t, ignoreSlash) {
-		const path2 = path.endsWith('/') ? path.slice(0, path.length - 1) : path + '/';
-
-		// Get ALL of the redirects that match the path as well as the path variant with
-		// or without a slash
-		const ignoreSlashConditions = [
-			{
-				operator: 'or',
-				conditions: [
-					{ attribute: 'path', comparator: 'equals', value: path },
-					{ attribute: 'path', comparator: 'equals', value: path2 },
-				],
-			},
-		];
-
-		const defaultConditions = [{ attribute: 'path', comparator: 'equals', value: path }];
-
-		const searchResult = await databases.redirects.rule.search({
-			conditions: ignoreSlash ? ignoreSlashConditions : defaultConditions,
+	async searchStaticRedirect(searchObj) {
+		// Build search conditions
+		const { path, qs, qString } = searchObj;
+		const conditions = buildSearchConditions({
+			...searchObj,
+			isRegexSearch: false,
 		});
 
-		const results = await Array.fromAsync(searchResult);
+		// Search DB for matching rules
+		const searchResults = await databases.redirects.rule.search({
+			conditions: conditions,
+		});
+		const results = await Array.fromAsync(searchResults);
 
-		let match = false;
+		// Apply filters for time validity
+		const filtered = results.filter((row) => isRedirectValid(row, t));
 
-		// Filter out
-		const filtered = results
-			.filter((row) => row.version == version) // filter out incorrect versions
-			.filter((row) => !(hostOnly && row.host != host)) // filter out hostOnly and host does not match
-			.filter((row) => !(row.host?.length > 0 && host?.length == 0)) // filter out rows with hosts and no host passed in
-			.filter((row) => this.isRedirectValid(row, t)) // filter out rows that do not match the right time
-			.filter((row) => {
-				if (row.host !== host && row.host.length == 0) {
-					// Return rows that don't match the host but the row host is not set
-					return true;
-				}
-				if (row.host === host) {
-					// Return rows that match the host and record the match
-					match = true;
-					return true;
-				}
-			})
-			.filter((row) => {
-				if (match && row.host === host) {
-					// Return rows that match the host where there was a match recorded above
-					return true;
-				}
-				return !match; // If not match set above, return true
-			});
-
-		if (filtered.length == 1) {
+		if (filtered.length === 1) {
 			return filtered[0];
 		}
-		if (filtered.length == 2) {
-			const row = filtered.filter((row) => row.path === path);
-			if (row) {
-				return row[0];
-			}
-		}
 
-		{
-			const conditions = [{ attribute: 'regex', comparator: 'equals', value: true }];
-			const regexSearchResult = await databases.redirects.rule.search(conditions);
-			const regexes = await Array.fromAsync(regexSearchResult);
-
-			for (const regexRecord of regexes) {
-				const re = new RegExp(regexRecord.path);
-
-				if (path.match(re)) {
-					if (this.isRedirectValid(regexRecord, t)) {
-						const newPath = path.replace(re, regexRecord.redirectURL);
-						return {
-							...regexRecord,
-							redirectURL: newPath,
-						};
-					}
+		if (filtered.length > 1) {
+			if (qs === 'i') {
+				// Select row with path matching (ignore query string)
+				const row = filtered.filter((row) => row.path === path);
+				if (row) {
+					return row[0];
+				}
+			} else {
+				// Select row with path and query string matching
+				const row = filtered.filter((row) => row.path === path + qString);
+				if (row) {
+					return row[0];
 				}
 			}
 		}
@@ -201,30 +183,61 @@ export class CheckRedirect extends databases.redirects.rule {
 	}
 
 	/**
-	 * Checks if a redirect rule is currently valid based on its time constraints.
-	 * @param {Object} redirect - The redirect rule to check.
-	 * @returns {boolean} True if the redirect is valid, false otherwise.
+	 * Search for a regex redirect rule that matches the given criteria.
+	 *
+	 * The criteria are passed as a single `searchObj`, which controls scope (host/version),
+	 * path handling (slash-insensitive, host-only), and query-string behavior.
+	 *
+	 * @param {Object} searchObj - Search criteria.
+	 * @param {string} searchObj.path - The path to search for.
+	 * @param {string} searchObj.host - The host to search for.
+	 * @param {number} searchObj.version - The version to search for.
+	 * @param {boolean} searchObj.hostOnly - Whether to only match the host.
+	 * @param {boolean} searchObj.si - Whether to ignore trailing slashes.
+	 * @param {string} searchObj.qs - Whether to include query strings.
+	 * @param {string} searchObj.qString - The query string value.
+	 * @returns {Promise<Object|null>} A single matched redirect rule or `null` if none.
 	 */
-	isRedirectValid(redirect, t) {
-		const now = t || Math.floor(Date.now() / 1000);
+	async searchRegexRedirect(searchObj) {
+		const BATCH_SIZE = 100;
 
-		return (
-			(!redirect.utcStartTime || now >= redirect.utcStartTime) &&
-			(!redirect.utcEndTime || now <= redirect.utcEndTime)
-		);
-	}
+		// Build search conditions
+		const { path, t } = searchObj;
+		const conditions = buildSearchConditions({ ...searchObj, isRegexSearch: true });
+		const searchResults = await databases.redirects.rule.search({
+			conditions: conditions,
+		});
 
-	/**
-	 * Removes the domain from a URL, leaving only the path and query.
-	 * @param {string} url - The full URL.
-	 * @returns {string} The URL path and query without the domain.
-	 */
-	stripDomain(url) {
-		if (!url) return '';
-		if (!url.startsWith('http://') && !url.startsWith('https://')) {
-			return url;
+		let regexMatches = [];
+		for await (const regexRecord of searchResults) {
+			if (!isRedirectValid(regexRecord, t)) {
+				continue;
+			}
+
+			const re = new RegExp(regexRecord.path);
+			if (!re) continue;
+
+			const match = path.match(re);
+			if (match) {
+				const newPath = path.replace(re, regexRecord.redirectURL);
+				regexMatches.push({ ...regexRecord, redirectURL: newPath, match });
+			}
 		}
-		const parsedUrl = new URL(url);
-		return parsedUrl.pathname + parsedUrl.search;
+
+		if (regexMatches.length === 1) {
+			delete regexMatches[0].match;
+			return regexMatches[0];
+		}
+
+		if (regexMatches.length > 1) {
+			// Select row with the longest matched substring
+			const best = regexMatches.reduce((a, b) => (a.match[0].length >= b.match[0].length ? a : b));
+			if (best) {
+				delete best.match;
+				return best;
+			}
+		}
+
+		return null;
 	}
 }
