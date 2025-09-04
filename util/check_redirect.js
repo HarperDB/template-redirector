@@ -146,6 +146,7 @@ export class CheckRedirect extends databases.redirects.rule {
 	 * @param {string} searchObj.host - The host to search for.
 	 * @param {number} searchObj.version - The version to search for.
 	 * @param {boolean} searchObj.hostOnly - Whether to only match the host.
+	 * @param {number} searchObj.t - Timestamp to check redirect validity.
 	 * @param {boolean} searchObj.si - Whether to ignore trailing slashes.
 	 * @param {string} searchObj.qs - Whether to include query strings.
 	 * @param {string} searchObj.qString - The query string value.
@@ -153,7 +154,7 @@ export class CheckRedirect extends databases.redirects.rule {
 	 */
 	async searchStaticRedirect(searchObj) {
 		// Build search conditions
-		const { path, qs, qString } = searchObj;
+		const { path, t, qs, qString } = searchObj;
 		const conditions = buildSearchConditions({
 			...searchObj,
 			isRegexSearch: false,
@@ -202,6 +203,7 @@ export class CheckRedirect extends databases.redirects.rule {
 	 * @param {string} searchObj.host - The host to search for.
 	 * @param {number} searchObj.version - The version to search for.
 	 * @param {boolean} searchObj.hostOnly - Whether to only match the host.
+	 * @param {number} searchObj.t - Timestamp to check redirect validity.
 	 * @param {boolean} searchObj.si - Whether to ignore trailing slashes.
 	 * @param {string} searchObj.qs - Whether to include query strings.
 	 * @param {string} searchObj.qString - The query string value.

@@ -9,6 +9,7 @@
  * @param {boolean} searchObj.si - Whether to ignore trailing slashes.
  * @param {string} searchObj.qs - Whether to include query strings.
  * @param {string} searchObj.qString - The query string value.
+ * @param {boolean} searchObj.isRegexSearch - Whether this is a regex search.
  * @returns {{}} - The constructed search conditions.
  */
 export const buildSearchConditions = (searchObj) => {
