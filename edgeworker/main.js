@@ -25,12 +25,12 @@ export async function onClientRequest(request) {
 			const data = await response.json();
 
 			const responseHeaders = {
-				Location: data.redirectUrl,
+				Location: data.redirectURL,
 			};
 
 			const body = '{}';
 
-			logger.log(`Redirecting ${request.url} to ${data.redirectUrl}`);
+			logger.log(`Redirecting ${request.url} to ${data.redirectURL}`);
 			request.respondWith(data.statusCode, responseHeaders, body);
 		} else {
 			logger.log(`No redirect found for ${request.url}`);

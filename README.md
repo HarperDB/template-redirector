@@ -276,8 +276,8 @@ The `rule` table in the `redirects` database stores redirect entries with the fo
 | `redirectURL`  | URL to redirect to                                              |
 | `statusCode`   | HTTP status code for the redirect (default: 301)                |
 | `operation`    | Special operation on the incoming / outgoing path (see below)   |
-| `lastAccessed` | Timestamp of last access                                        |
 | `regex`        | Boolean flas that indicated the `path` is a regex               |
+| `regexPrefix`  | Extracted path prefix for improved regex matching performance   |
 
 #### `path` and `redirectURL` field
 

@@ -1,8 +1,9 @@
 import { performance } from 'node:perf_hooks';
 import Papa from 'papaparse';
-import { allowedUserRoles } from '../utils/constants.js';
+import { allowedUserRoles, USE_STATIC_ONLY } from '../utils/constants.js';
 import { parseURLPath } from '../utils/parse.js';
 import { getCurrentVersion } from './get_current_config.js';
+import { getRegexPrefix } from './regex_helpers.js';
 
 /**
  * Class for the /redirect endpoint custom functionality.
@@ -10,6 +11,8 @@ import { getCurrentVersion } from './get_current_config.js';
  * Handles importing, validating, and persisting redirect rules from
  * CSV or JSON input. Also ensures de-duplication and versioning.
  *
+ * OPTIONS:
+ *  - USE_STATIC_ONLY: If true, only static paths are processed (no regex).
  */
 export class Redirect extends databases.redirects.rule {
 	// Write validated redirects to the database in batches
@@ -48,7 +51,7 @@ export class Redirect extends databases.redirects.rule {
 		const results = await this.processRedirects(json.data);
 
 		const t2 = performance.now();
-		server.recordAnalytics(t2 - t1, 'redirect-upload-timing');
+		server.recordAnalytics(t2 - t1, 'redirect-upload-timing', USE_STATIC_ONLY);
 
 		return {
 			message: `Successfully loaded ${results.success} redirects.`,
@@ -82,12 +85,17 @@ export class Redirect extends databases.redirects.rule {
 			try {
 				if (!this.validateRedirect(item, skipped)) continue;
 
+				item.regex = item.regex ? Number(item.regex) === 1 : false;
+				if (item.regex && USE_STATIC_ONLY) {
+					skipped.push({ reason: 'regex not allowed in static mode', item });
+					continue;
+				}
+
 				const [host, path, querystring] = parseURLPath(item.path);
 
 				item.host = host || item.host || '';
 				item.path = path + (querystring || '');
 				item.version = typeof item.version === 'number' ? item.version : defaultVersion;
-				item.regex = item.regex ? Number(item.regex) === 1 : false;
 
 				// Check for duplicates/loops within this upload
 				const pathKey = `${item.version}||${item.host}||${item.path}`;
@@ -140,7 +148,7 @@ export class Redirect extends databases.redirects.rule {
 				success++;
 
 				const t2 = performance.now();
-				server.recordAnalytics(t2 - t1, 'redirect-upload-process-timing');
+				server.recordAnalytics(t2 - t1, 'redirect-upload-process-timing', item.regex);
 
 				if (batch.length >= batchSize) {
 					await this.flushBatch(batch);
@@ -206,6 +214,11 @@ export class Redirect extends databases.redirects.rule {
 			version = undefined;
 		}
 
+		let regexPrefix;
+		if (item.regex && !USE_STATIC_ONLY) {
+			regexPrefix = getRegexPrefix(item.path);
+		}
+
 		return {
 			utcStartTime: start,
 			utcEndTime: end,
@@ -216,6 +229,7 @@ export class Redirect extends databases.redirects.rule {
 			operations: item.operations,
 			statusCode: item.statusCode ? Number(item.statusCode) : 301,
 			regex: item.regex,
+			regexPrefix,
 		};
 	}
 

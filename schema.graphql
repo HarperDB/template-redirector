@@ -29,6 +29,9 @@ type rule @table(database: "redirects") @sealed @export {
 
 	# Flag indicating the the rule contains regex
 	regex: Bool
+
+	# Prefix to use for regex matching (set during rule creation)
+	regexPrefix: String @indexed
 }
 
 # Table for managing host entries to apply to specific redirects

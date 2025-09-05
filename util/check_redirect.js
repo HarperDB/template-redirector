@@ -1,9 +1,10 @@
 import { performance } from 'node:perf_hooks';
 import querystring from 'node:querystring';
 import { parseOperations, parseParams, parseQuery } from './parse.js';
-import { allowedUserRoles } from '../utils/constants.js';
+import { allowedUserRoles, USE_STATIC_ONLY } from '../utils/constants.js';
 import { getCurrentVersion, getHostData, isRedirectValid } from './get_current_config.js';
 import { buildSearchConditions } from './search_conditions.js';
+import { getRegexPrefix } from './regex_helpers.js';
 
 /**
  * Class for the /checkredirect endpoint custom functionality.
@@ -14,6 +15,9 @@ import { buildSearchConditions } from './search_conditions.js';
  * - Look up redirect rules by path, host, version, and query string.
  * - Support filtering by time, host-only mode, and query string behavior.
  * - Apply redirect operations (e.g., preserving or filtering query params).
+ *
+ * OPTIONS:
+ *  - USE_STATIC_ONLY: If true, only static paths are searched (no regex).
  */
 export class CheckRedirect extends databases.redirects.rule {
 	static DEFAULT_VERSION = 0;
@@ -74,9 +78,11 @@ export class CheckRedirect extends databases.redirects.rule {
 		// Perform rule lookup
 		const t2 = performance.now();
 		let searchResult;
+		let usedRegexSearch = false;
 		const searchObj = { path, host, version, hostOnly, t, si, qs, qString };
 		searchResult = await this.searchStaticRedirect(searchObj);
-		if (!searchResult) {
+		if (!searchResult && !USE_STATIC_ONLY) {
+			usedRegexSearch = true;
 			searchResult = await this.searchRegexRedirect(searchObj);
 		}
 
@@ -158,6 +164,7 @@ export class CheckRedirect extends databases.redirects.rule {
 		const conditions = buildSearchConditions({
 			...searchObj,
 			isRegexSearch: false,
+			regexPrefix: '',
 		});
 
 		// Search DB for matching rules
@@ -212,7 +219,8 @@ export class CheckRedirect extends databases.redirects.rule {
 	async searchRegexRedirect(searchObj) {
 		// Build search conditions
 		const { path, t } = searchObj;
-		const conditions = buildSearchConditions({ ...searchObj, isRegexSearch: true });
+		const regexPrefix = getRegexPrefix(path);
+		const conditions = buildSearchConditions({ ...searchObj, isRegexSearch: true, regexPrefix });
 		const searchResults = await databases.redirects.rule.search({
 			conditions: conditions,
 		});

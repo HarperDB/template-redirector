@@ -10,10 +10,11 @@
  * @param {string} searchObj.qs - Whether to include query strings.
  * @param {string} searchObj.qString - The query string value.
  * @param {boolean} searchObj.isRegexSearch - Whether this is a regex search.
+ * @param {string} searchObj.regexPrefix - The regex prefix to match.
  * @returns {{}} - The constructed search conditions.
  */
 export const buildSearchConditions = (searchObj) => {
-	const { path, host, version, hostOnly, si, qs, qString, isRegexSearch } = searchObj;
+	const { path, host, version, hostOnly, si, qs, qString, isRegexSearch, regexPrefix } = searchObj;
 
 	// Version is either default or active and must match
 	const versionConditions = [{ attribute: 'version', comparator: 'equals', value: version }];
@@ -69,8 +70,11 @@ export const buildSearchConditions = (searchObj) => {
 		];
 		return allConditions;
 	} else {
-		// For regex searches, match on regex boolean vs path
-		const regexConditions = [{ attribute: 'regex', comparator: 'equals', value: true }];
+		// For regex searches, match on regex and prefix vs path
+		const regexConditions = [
+			{ attribute: 'regexPrefix', comparator: 'equals', value: regexPrefix },
+			{ attribute: 'regex', comparator: 'equals', value: true },
+		];
 
 		const allConditions = [
 			{

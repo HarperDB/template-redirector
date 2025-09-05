@@ -1,4 +1,4 @@
-import { allowedUserRoles } from '../utils/constants.js';
+import { allowedUserRoles, USE_STATIC_ONLY } from '../utils/constants.js';
 
 // Harper system db for recording analytics
 const { hdb_analytics } = databases.system;
@@ -73,11 +73,13 @@ export class RedirectMetrics extends Resource {
 			};
 		}
 
-		const results = await hdb_analytics.search({ conditions });
+		const staticResults = await hdb_analytics.search({
+			conditions: [...conditions, { attribute: 'path', value: false, comparator: 'equals' }],
+		});
 
-		let timing = {};
-		for await (const result of results) {
-			timing = {
+		let staticTiming = {};
+		for await (const result of staticResults) {
+			staticTiming = {
 				metric: timingType,
 				period: range,
 				unit: 'ms',
@@ -89,6 +91,29 @@ export class RedirectMetrics extends Resource {
 			break;
 		}
 
-		return timing;
+		let regexTiming = {};
+		if (!USE_STATIC_ONLY) {
+			const regexResults = await hdb_analytics.search({
+				conditions: [...conditions, { attribute: 'path', value: true, comparator: 'equals' }],
+			});
+
+			for await (const result of regexResults) {
+				regexTiming = {
+					metric: timingType,
+					period: range,
+					unit: 'ms',
+					avg: result.mean.toFixed(3) || 0,
+					p50: result.median.toFixed(3) || 0,
+					p90: result.p90.toFixed(3) || 0,
+					p95: result.p95.toFixed(3) || 0,
+				};
+				break;
+			}
+		}
+
+		return {
+			staticTiming: staticTiming,
+			regexTiming: USE_STATIC_ONLY ? 'Static Only Mode, No Regex Timing Data' : regexTiming,
+		};
 	}
 }
