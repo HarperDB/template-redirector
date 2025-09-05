@@ -165,3 +165,78 @@ export const parseURLPath = (url) => {
 	// Return [host, path, query] (omit host if fragment only)
 	return [fullUrl ? parsedUrl.host : '', parsedUrl.pathname, parsedUrl.search];
 };
+
+/**
+ * Validates & normalizes a URL-like string.
+ *
+ * Accepts:
+ *  - Full URL:            "https://example.com/foo//bar?x=1#h"
+ *  - Schemeless URL:      "//example.com/foo//bar?x=1#h"
+ *  - Path fragment:       "/foo//bar?x=1#h"
+ *
+ * Behavior:
+ *  - Normalizes the pathname (collapses multiple slashes to one, ensures a single leading "/").
+ *  - Preserves search and hash.
+ *  - Returns a full URL if input had a scheme (or was schemeless), otherwise returns a fragment.
+ *
+ * @param {string} input - The URL-like string to validate and normalize.
+ * @returns {string} - Full URL or URL fragment depending on input.
+ */
+export const validateURLPath = (input) => {
+	let url = String(input ?? '').trim();
+	if (url === '') return '/';
+
+	let isFullUrl = false;
+	let parsed;
+
+	// If schemeless, temporarily add https: so URL() can parse it
+	if (url.startsWith('//')) {
+		url = 'https:' + url;
+		isFullUrl = true; // treat schemeless as full for the return value
+	}
+
+	// If it already has a scheme, mark as full URL
+	const hasScheme = /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(url);
+	if (hasScheme) {
+		isFullUrl = true;
+	}
+
+	try {
+		// Use a placeholder base to parse fragments; URL will also normalize dot-segments
+		parsed = isFullUrl ? new URL(url) : new URL(url, 'https://placeholder.com/');
+	} catch {
+		// Fallback: treat as a raw path fragment and normalize slashes
+		const normalized = normalizePathname('/' + url.replace(/^\/+/, ''));
+		return normalized;
+	}
+
+	// Normalize only the pathname; leave protocol/host/query/hash intact
+	parsed.pathname = normalizePathname(parsed.pathname);
+
+	if (isFullUrl) {
+		// Return full URL: origin + normalized path + query + hash
+		return parsed.origin + parsed.pathname + parsed.search + parsed.hash;
+	}
+
+	// Return fragment: normalized path + query + hash (no placeholder host)
+	return parsed.pathname + parsed.search + parsed.hash;
+};
+
+/**
+ * Collapses multiple slashes in a pathname and ensures a single leading "/".
+ * Does not strip a trailing slash (preserves it if present).
+ * @param {string} pathname - The pathname to normalize.
+ * @returns {string} - The normalized pathname.
+ */
+const normalizePathname = (pathname) => {
+	// Ensure string and trim
+	let p = String(pathname || '').trim();
+
+	// ensure URL.pathname always starts with "/"
+	p = '/' + p.replace(/^\/+/, '');
+
+	// Collapse duplicate slashes within the path (not affecting protocol)
+	p = p.replace(/\/{2,}/g, '/');
+
+	return p;
+};

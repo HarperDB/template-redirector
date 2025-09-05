@@ -214,6 +214,21 @@ export class Redirect extends databases.redirects.rule {
 			version = undefined;
 		}
 
+		let host = '';
+		if (item.host && item.host.trim() !== '') {
+			host = item.host.trim().toLowerCase();
+		}
+
+		let operations;
+		if (item.operations && item.operations.trim() !== '') {
+			operations = item.operations.trim().toLowerCase();
+		}
+
+		let statusCode = 301;
+		if (item.statusCode && !isNaN(parseInt(item.statusCode, 10))) {
+			statusCode = parseInt(item.statusCode, 10);
+		}
+
 		let regexPrefix;
 		if (item.regex && !USE_STATIC_ONLY) {
 			regexPrefix = getRegexPrefix(item.path);
@@ -222,12 +237,12 @@ export class Redirect extends databases.redirects.rule {
 		return {
 			utcStartTime: start,
 			utcEndTime: end,
-			path: item.path,
-			host: item.host,
-			version: version,
-			redirectURL: item.redirectURL,
-			operations: item.operations,
-			statusCode: item.statusCode ? Number(item.statusCode) : 301,
+			path: item.path.trim().toLowerCase(),
+			host,
+			version,
+			redirectURL: item.redirectURL.trim().toLowerCase(),
+			operations,
+			statusCode,
 			regex: item.regex,
 			regexPrefix,
 		};

@@ -4,7 +4,7 @@ import { parseOperations, parseParams, parseQuery } from './parse.js';
 import { allowedUserRoles, USE_STATIC_ONLY } from '../utils/constants.js';
 import { getCurrentVersion, getHostData, isRedirectValid } from './get_current_config.js';
 import { buildSearchConditions } from './search_conditions.js';
-import { getRegexPrefix } from './regex_helpers.js';
+import { getRegexPrefix, processRegexBatch } from './regex_helpers.js';
 
 /**
  * Class for the /checkredirect endpoint custom functionality.
@@ -79,11 +79,21 @@ export class CheckRedirect extends databases.redirects.rule {
 		const t2 = performance.now();
 		let searchResult;
 		let usedRegexSearch = false;
-		const searchObj = { path, host, version, hostOnly, t, si, qs, qString };
-		searchResult = await this.searchStaticRedirect(searchObj);
+		const searchOptions = {
+			path: path.trim().toLowerCase(),
+			host: host !== '' ? host.trim().toLowerCase() : '',
+			version,
+			hostOnly,
+			t,
+			si,
+			qs,
+			qString: qString !== '' ? qString.trim().toLowerCase() : '',
+		};
+
+		searchResult = await this.searchStaticRedirect(searchOptions);
 		if (!searchResult && !USE_STATIC_ONLY) {
 			usedRegexSearch = true;
-			searchResult = await this.searchRegexRedirect(searchObj);
+			searchResult = await this.searchRegexRedirect(searchOptions);
 		}
 
 		if (searchResult) {
@@ -217,28 +227,46 @@ export class CheckRedirect extends databases.redirects.rule {
 	 * @returns {Promise<Object|null>} A single matched redirect rule or `null` if none.
 	 */
 	async searchRegexRedirect(searchObj) {
+		const BATCH_SIZE = 100;
+
 		// Build search conditions
 		const { path, t } = searchObj;
 		const regexPrefix = getRegexPrefix(path);
 		const conditions = buildSearchConditions({ ...searchObj, isRegexSearch: true, regexPrefix });
+
+		// Search DB for matching rules
 		const searchResults = await databases.redirects.rule.search({
 			conditions: conditions,
 		});
 
 		let regexMatches = [];
+		let batch = [];
 		for await (const regexRecord of searchResults) {
 			if (!isRedirectValid(regexRecord, t)) {
 				continue;
 			}
 
-			const re = new RegExp(regexRecord.path);
-			if (!re) continue;
+			batch.push(regexRecord);
+			if (batch.length >= BATCH_SIZE) {
+				const { matches, perfectMatch } = await processRegexBatch(batch, path);
+				if (perfectMatch) {
+					delete perfectMatch.match;
+					return perfectMatch;
+				}
 
-			const match = path.match(re);
-			if (match) {
-				const newPath = path.replace(re, regexRecord.redirectURL);
-				regexMatches.push({ ...regexRecord, redirectURL: newPath, match });
+				regexMatches.push(...matches);
+				batch = [];
 			}
+		}
+
+		if (batch.length > 0) {
+			const { matches, perfectMatch } = await processRegexBatch(batch, path);
+			if (perfectMatch) {
+				delete perfectMatch.match;
+				return perfectMatch;
+			}
+
+			regexMatches.push(...matches);
 		}
 
 		if (regexMatches.length === 1) {
