@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Redirector is a Harper component built to handle large-scale redirect needs. It enhances the performance and scalability of existing redirector applications, supporting use cases that require hundreds of thousands to millions of redirects.
+The Redirector is a Harper component built to handle large-scale redirect needs. It enhances the performance and scalability of existing redirector applications, supporting use cases that require hundreds of thousands to millions of redirects. See below [Performance](#performance-test-results) for test results.
 
 ### What is Harper
 
@@ -58,7 +58,7 @@ The Harper REST API gives low level control over your data. The first two endpoi
 
 Upload a CSV file containing redirect rules to the `/redirect` endpoint:
 
-```
+```bash
 POST /redirect
 Content-Type: text/csv
 
@@ -67,7 +67,7 @@ Content-Type: text/csv
 
 or JSON
 
-```
+```bash
 POST /redirect
 Content-Type: application/json
 
@@ -92,7 +92,7 @@ Fields (See `rule` table below for more information):
 
 Example file:
 
-```
+```bash
 utcStartTime,utcEndTime,path,redirectURL,host,version,operations,statusCode,regex
 ,,/oldpath,/newpath,,,,301,0
 1743120075,1743120135,/oldpath,/newpath,www.example.com,1,qs:perserve=1,302,0
@@ -101,24 +101,27 @@ utcStartTime,utcEndTime,path,redirectURL,host,version,operations,statusCode,rege
 
 JSON Format:
 
-```
-{ "data": [
-  { "utcStartTime":"",
-    "utcEndTime":"",
-    "path":"/shop/live-shopping",
-    "host":"",
-    "version":"0",
-    "redirectURL":"/s/events",
-    "operations":"",
-    "statusCode":"301",
-    "regex": 0
-  },
-]}
+```json
+{
+	"data": [
+		{
+			"utcStartTime": "",
+			"utcEndTime": "",
+			"path": "/shop/live-shopping",
+			"host": "",
+			"version": "0",
+			"redirectURL": "/s/events",
+			"operations": "",
+			"statusCode": "301",
+			"regex": 0
+		}
+	]
+}
 ```
 
 Here is an example curl command to upload a CSV file:
 
-```
+```bash
 curl http://yourendpoint.com:9926/redirect --header "Content-type: text/csv" --data-binary @data/example.csv
 ```
 
@@ -128,7 +131,7 @@ Note the use of `--data-binary`. The `-d` switch will strip the newlines from yo
 
 To do a simple check if a URL has a redirect:
 
-```
+```bash
 GET /checkredirect
 Headers:
   Path: /your/path
@@ -136,7 +139,7 @@ Headers:
 
 or
 
-```
+```bash
 GET /checkredirect?path=/your/path
 ```
 
@@ -154,13 +157,13 @@ The full available parameters are:
 
 For example, this query:
 
-```
+```bash
 GET /checkredirect?path=/your/path&h=www.example.com&ho=1
 ```
 
 Will search the rule table for the specified path and hostname. If there is no match, it will NOT search again for a global entry without a hostname. This query is equivalent:
 
-```
+```bash
 GET /checkredirect?path=https://www.example.com/your/path&ho=1
 ```
 
@@ -171,7 +174,7 @@ GET /checkredirect?path=https://www.example.com/your/path&ho=1
 >
 > - All other params will **not** be applied with this option
 
-```
+```bash
 GET /checkdirect/https://www.example.com/page-name?key=val&arg=val2
 ```
 
@@ -190,7 +193,7 @@ GET /checkdirect?path=/page-name&h=www.example.com
 > - Path specific query string added to `x-query-string` header (ex: 'x-query-string': '?key=var&arg=val2)
 > - All other params will still go in the query string
 
-```
+```bash
 GET /checkdirect?h=www.example.com&ho=1
 ```
 
@@ -199,7 +202,7 @@ GET /checkdirect?h=www.example.com&ho=1
 > - Path goes in `Path` header with query string (ex: 'path': '/page-name?key=var&arg=val2)
 > - All other params will still go in the query string
 
-```
+```bash
 GET /checkdirect?h=www.example.com&ho=1
 ```
 
@@ -229,7 +232,7 @@ The `/redirectmetrics` endpoint provides multiple options for viewing usage and 
 
 1. Get usage metrics for each path URL:
 
-```
+```bash
 GET /redirectmetrics
 or
 GET /redirectmetrics?type=redirect
@@ -237,25 +240,25 @@ GET /redirectmetrics?type=redirect
 
 2. Get timing metrics for search portion of `GET /checkredirect` request
 
-```
+```bash
 GET /redirectmetrics?type=redirect-search-timing
 ```
 
 3. Get timing metrics for for full `GET /checkredirect` request timing
 
-```
+```bash
 GET /redirectmetrics?type=redirect-timing
 ```
 
 4. Get timing metrics for full `POST /redirect` request timing
 
-```
+```bash
 GET /redirectmetrics?type=redirect-upload-timing
 ```
 
 5. Get timing metrics for individual redirect item processing portion of `POST /redirect` request
 
-```
+```bash
 GET /redirectmetrics?type=redirect-upload-process-timing
 ```
 
@@ -283,13 +286,13 @@ The `rule` table in the `redirects` database stores redirect entries with the fo
 
 The `path` field can either be a literal match or a regular expression. If the `regex` field is `true`, `path` will be interpreted as a regex. The regex can perform normal match capturing which can then be used in the redirectURL. This is effectively `/path/replacementURL/` if `/path/` matches the incomming URL. This is currently a single match / replacement. For example, if you have a `path` defined as:
 
-```
+```bash
 /foo/(.*)
 ```
 
 and a redirectURL as:
 
-```
+```bash
 /bar/$1
 ```
 
@@ -312,19 +315,19 @@ The `operation` field is intended to indicate special handling for the redirect.
 
 Example: Remove arg2 from the copied output
 
-```
+```bash
 qs:filter=arg2
 ```
 
 Example: Remove arg2 and arg3 from the copied output
 
-```
+```bash
 qs:filter=arg2&filter=arg3
 ```
 
 Example: Copy the incomming query string to the redirect
 
-```
+```bash
 qs:preserve=1
 ```
 
@@ -361,7 +364,7 @@ its [documentaion](https://docs.harperdb.io/docs/developers/rest)
 >
 > These examples for creating records in the rule are illustrative only. Please use the `/redirect` endpoing for adding redirects.
 
-```
+```bash
 POST /rule
 Content-type: application/json
 Content-length: <CL of body>
@@ -369,7 +372,7 @@ Content-length: <CL of body>
 {"path":"/foo","redirectURL":"/bar","statusCode":304}
 ```
 
-```
+```bash
 POST /version
 Content-type: application/json
 Content-length: <CL of body>
@@ -377,7 +380,7 @@ Content-length: <CL of body>
 {"activeVersion":2}
 ```
 
-```
+```bash
 POST /hosts
 Content-type: application/json
 Content-length: <CL of body>
@@ -387,7 +390,7 @@ Content-length: <CL of body>
 
 ### Read
 
-```
+```bash
 GET /rule/35a1cb2d-5c99-4172-9e3c-c40639d138b5
 GET /rule/?path=/d/shoes/
 GET /hosts/?host=www.example.com
@@ -395,7 +398,7 @@ GET /hosts/?host=www.example.com
 
 ### Update
 
-```
+```bash
 PUT /rule/35a1cb2d-5c99-4172-9e3c-c40639d138b5
 Content-type: application/json
 Content-length: <CL of body>
@@ -403,7 +406,7 @@ Content-length: <CL of body>
 {"path":"/p/shoes/","redirectURL":"/shop/shoes?id=1236","statusCode":304'}
 ```
 
-```
+```bash
 PUT /rule/35a1cb2d-5c99-4172-9e3c-c40639d138b5
 Content-type: application/json
 Content-length: <CL of body>
@@ -413,7 +416,7 @@ Content-length: <CL of body>
 
 ### Delete
 
-```
+```bash
 DELETE /rule/35a1cb2d-5c99-4172-9e3c-c40639d138b5
 DELETE /rule/?path=/p/shoes/
 DELETE /rule/?path==*
@@ -423,7 +426,7 @@ DELETE /rule/?path==*
 
 The file `test/redirector-test.js` has regression tests with the intention of covering all of that above API calls. Run them with:
 
-```
+```bash
 node --test
 ```
 
@@ -437,3 +440,21 @@ The test uses a `.env` file at the component root for configuration:
 | AUTH     | Should HTTP Basic auth be sent? true/false             |
 | USERNAME | The username for basic auth                            |
 | PASSWORD | The password for basic auth                            |
+
+## Performance Test Results
+
+### Performance Thresholds
+
+Performance testing was conducted using k6 to determine maximum sustainable throughput for two redirect rule types with a p95 latency target of <100ms.
+
+## Results Summary
+
+| Rule   | Max Sustainable RPS | P95 Latency at Max RPS |
+| ------ | ------------------- | ---------------------- |
+| Static | 2,000               | 23.19ms                |
+| Regex  | 1,700               | 66.54ms                |
+
+**Key Findings:**
+
+- **Static Rules**: Successfully maintained p95 <100ms at maximum tested load of 2,000 RPS
+- **Regex Rules**: Threshold crossed at 1,900 RPS (132ms p95), max sustainable capacity is 1,700 RPS
