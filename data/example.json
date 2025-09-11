@@ -337,177 +337,61 @@
             "operations": "",
             "statusCode": "301",
             "isRegex": "0"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/dir1/*",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/dir2/",
+            "operations": "qs:preserve=1",
+            "statusCode": "301",
+            "regex": "1"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/dir11/*",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/dir99/",
+            "operations": "qs:preserve=0",
+            "statusCode": "301",
+            "regex": "1"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "/shop/outfits",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/shop/deals",
+            "operations": "qs:filter=top&filter=fab",
+            "statusCode": "301",
+            "regex": "0"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "^/dir66/*",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/magic/shopping/deals",
+            "operations": "qs:filter=top&filter=fab",
+            "statusCode": "301",
+            "regex": "1"
+        },
+        {
+            "utcStartTime": "",
+            "utcEndTime": "",
+            "path": "^/dir77/apples/red/*",
+            "host": "",
+            "version": "0",
+            "redirectURL": "/violets/blue",
+            "operations": "qs:filter=flower",
+            "statusCode": "301",
+            "regex": "1"
         }
-    ],
-    "errors": [
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 0
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 1
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 2
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 3
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 4
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 5
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 6
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 7
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 8
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 9
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 10
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 11
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 12
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 13
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 14
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 15
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 16
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 17
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 18
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 19
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 20
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 21
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 22
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 23
-        },
-        {
-            "type": "FieldMismatch",
-            "code": "TooFewFields",
-            "message": "Too few fields: expected 9 fields but parsed 8",
-            "row": 24
-        }
-    ],
-    "meta": {
-        "delimiter": ",",
-        "linebreak": "\n",
-        "aborted": false,
-        "truncated": false,
-        "cursor": 1820,
-        "renamedHeaders": null,
-        "fields": [
-            "utcStartTime",
-            "utcEndTime",
-            "path",
-            "host",
-            "version",
-            "redirectURL",
-            "operations",
-            "statusCode",
-            "isRegex"
-        ]
-    }
+    ]
 }

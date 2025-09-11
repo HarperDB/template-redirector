@@ -1,4 +1,4 @@
-utcStartTime,utcEndTime,path,host,version,redirectURL,operations,statusCode,isRegex
+utcStartTime,utcEndTime,path,host,version,redirectURL,operations,statusCode,regex
 ,,/shop/live-shopping,,0,/s/events,,301
 ,,/p/shirts/,www.example.com,0,/shop/mens-clothing/shirts?id=1234,,301
 ,,/p/hats/,www.example.com,0,/shop/mens-clothing/hats?id=1234,,301
@@ -32,3 +32,8 @@ utcStartTime,utcEndTime,path,host,version,redirectURL,operations,statusCode,isRe
 ,,/dir3/dir4,www.example2.com,0,/dir3/dir4/dir7,,301,0
 ,,/dir3/dir4/,www.example2.com,0,/dir3/dir4/dir8,,301,0
 ,,/dir3/dir4,,1,/dir3/dir4/dir9,,301,0
+,,/dir1/*,,0,/dir2/,qs:preserve=1,301,1
+,,/dir11/*,,0,/dir99/,qs:preserve=0,301,1
+,,/shop/outfits,,0,/shop/deals,qs:filter=top&filter=fab,301,0
+,,/dir66/*,,0,/magic/shopping/deals,qs:filter=top&filter=fab,301,1
+,,/dir77/apples/red/*,,0,/violets/blue,qs:filter=flower,301,1

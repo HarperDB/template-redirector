@@ -1,1 +1,1 @@
-{ "data": "utcStartTime,utcEndTime,path,redirectURL,statusCode,,,,,,,,,,,," }
+{ "data": "utcStartTime,utcEndTime,path,host,version,redirectURL,operations,statusCode,regex,,," }

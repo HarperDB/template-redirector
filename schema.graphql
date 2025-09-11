@@ -1,51 +1,56 @@
 # Redirect rule table
-type rule @table(database: "redirects") @export {
-    # Unique identifier for the rule
-    id: Any @primaryKey
+type rule @table(database: "redirects") @sealed @export {
+	# Unique identifier for the rule
+	id: Any @primaryKey
 
-    # UTC timestamp for when the rule becomes active (optional)
-    utcStartTime: Float
+	# UTC timestamp for when the rule becomes active (optional)
+	utcStartTime: Float @indexed
 
-    # UTC timestamp for when the rule becomes inactive (optional)
-    utcEndTime: Float
+	# UTC timestamp for when the rule becomes inactive (optional)
+	utcEndTime: Float @indexed
 
-    # The path of the incoming URL to match (indexed for faster lookups)
-    path: String @indexed
+	# The path of the incoming URL to match (indexed for faster lookups)
+	path: String @indexed
 
-    # The path to redirect to (indexed for faster lookups)
-    redirectURL: String @indexed
+	# The path to redirect to (indexed for faster lookups)
+	redirectURL: String @indexed
 
-    # The host name for the redirect (optional)
-    host: String
+	# The host name for the redirect (optional)
+	host: String @indexed
 
-    # The version for the redirect
-    version: Int
+	# The version for the redirect
+	version: Int @indexed
 
-    # The HTTP status code to use for the redirect (e.g., 301, 302)
-    statusCode: Int
+	# The HTTP status code to use for the redirect (e.g., 301, 302)
+	statusCode: Int
 
-    # Advanced operations
-    operations: String
+	# Advanced operations
+	operations: String
 
-    # Flag indicating the the rule contains regex
-    regex: Bool
+	# Flag indicating the the rule contains regex
+	regex: Bool
+
+	# Prefix to use for regex matching (set during rule creation)
+	regexPrefix: String @indexed
 }
 
-type hosts @table(database: "redirects") @export {
-    # Unique identifier for the host entry
-    id: Any @primaryKey
+# Table for managing host entries to apply to specific redirects
+type hosts @table(database: "redirects") @sealed @export {
+	# Unique identifier for the host entry
+	id: Any @primaryKey
 
-    # The host name for the redirect (optional)
-    host: String @indexed
+	# The host name for the redirect (optional)
+	host: String @indexed
 
-    # The path to redirect to (indexed for faster lookups)
-    hostOnly: Boolean
+	# The path to redirect to (indexed for faster lookups)
+	hostOnly: Boolean
 }
 
-type version @table(database: "redirects") @export {
-    # Unique identifier for the host entry
-    id: Any @primaryKey
+# Table for managing active version for redirects
+type version @table(database: "redirects") @sealed @export {
+	# Unique identifier for the host entry
+	id: Any @primaryKey
 
-    # The host name for the redirect (optional)
-    activeVersion: Int @indexed
+	# The host name for the redirect (optional)
+	activeVersion: Int @indexed
 }
