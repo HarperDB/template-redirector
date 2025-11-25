@@ -1,4 +1,4 @@
-import { CheckRedirect } from '../resources/check_redirect.js';
+import { CheckRedirect } from './check_redirect.js';
 
 /**
  * Retrieves the current active redirect version.

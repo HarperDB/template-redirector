@@ -1,4 +1,4 @@
-import { allowedUserRoles, USE_STATIC_ONLY } from '../utils/constants.js';
+import { allowedUserRoles, USE_STATIC_ONLY } from '../util/constants.js';
 
 // Harper system db for recording analytics
 const { hdb_analytics } = databases.system;
