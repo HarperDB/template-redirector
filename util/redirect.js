@@ -1,7 +1,7 @@
 import { performance } from 'node:perf_hooks';
 import Papa from 'papaparse';
-import { allowedUserRoles, USE_STATIC_ONLY } from '../utils/constants.js';
-import { parseURLPath } from '../utils/parse.js';
+import { allowedUserRoles, USE_STATIC_ONLY } from '../util/constants.js';
+import { parseURLPath } from '../util/parse.js';
 import { getCurrentVersion } from './get_current_config.js';
 import { getRegexPrefix } from './regex_helpers.js';
 

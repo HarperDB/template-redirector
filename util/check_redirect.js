@@ -1,7 +1,7 @@
 import { performance } from 'node:perf_hooks';
 import querystring from 'node:querystring';
 import { parseOperations, parseParams, parseQuery } from './parse.js';
-import { allowedUserRoles, USE_STATIC_ONLY } from '../utils/constants.js';
+import { allowedUserRoles, USE_STATIC_ONLY } from '../util/constants.js';
 import { getCurrentVersion, getHostData, isRedirectValid } from './get_current_config.js';
 import { buildSearchConditions } from './search_conditions.js';
 import { getRegexPrefix, processRegexBatch } from './regex_helpers.js';

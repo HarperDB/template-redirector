@@ -1,5 +1,3 @@
-import { validateURL } from './url_helpers.js';
-
 /**
  * Returns the first token after trimming any leading non-alphanumerics.
  * The token is [A-Za-z0-9]+ with an optional single hyphen or underscore followed by [A-Za-z0-9]+.
