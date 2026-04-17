@@ -1,10 +1,10 @@
 import { performance } from 'node:perf_hooks';
 import querystring from 'node:querystring';
-import { parseOperations, parseParams, parseQuery } from './parse.js';
+import { parseOperations, parseParams, parseQuery } from '../util/parse.js';
 import { allowedUserRoles, USE_STATIC_ONLY } from '../util/constants.js';
-import { getCurrentVersion, getHostData, isRedirectValid } from './get_current_config.js';
-import { buildSearchConditions } from './search_conditions.js';
-import { getRegexPrefix, processRegexBatch } from './regex_helpers.js';
+import { getCurrentVersion, getHostData, isRedirectValid } from '../util/getCurrentConfig.js';
+import { buildSearchConditions } from '../util/searchConditions.js';
+import { getRegexPrefix, processRegexBatch } from '../util/regexHelpers.js';
 
 /**
  * Class for the /checkredirect endpoint custom functionality.
@@ -19,7 +19,7 @@ import { getRegexPrefix, processRegexBatch } from './regex_helpers.js';
  * OPTIONS:
  *  - USE_STATIC_ONLY: If true, only static paths are searched (no regex).
  */
-export class CheckRedirect extends databases.redirects.rule {
+export default class CheckRedirect extends databases.redirects.Rule {
 	static DEFAULT_VERSION = 0;
 	static DEFAULT_HOST_ONLY = false;
 
@@ -64,7 +64,7 @@ export class CheckRedirect extends databases.redirects.rule {
 		// Parse params with defaults
 		const params = parseParams(query, paramsConfig);
 		const qs = params.qs; // 'i' ignore or defaults to match ('m')
-		const version = params.v || (await getCurrentVersion());
+		const version = params.v || (await getCurrentVersion(host));
 		const t = params.t;
 		const si = params.si; // ignore trailing slash, defaults to false
 		host = params.h || host;
@@ -107,8 +107,9 @@ export class CheckRedirect extends databases.redirects.rule {
 			}
 
 			// Apply query string operations
-			if (ops.hasOwnProperty('qs')) {
-				const hasPreserve = ops.qs.hasOwnProperty('preserve');
+			if (Object.hasOwn(ops, 'qs') && qString.length > 0) {
+				const hasPreserve = Object.hasOwn(ops.qs, 'preserve');
+				const hasFilter = Object.hasOwn(ops.qs, 'filter');
 				const preserve = parseInt(ops.qs?.preserve, 10) === 1;
 
 				if (hasPreserve && preserve) {
@@ -116,7 +117,7 @@ export class CheckRedirect extends databases.redirects.rule {
 					finalRedirect += qString;
 				} else if (hasPreserve && !preserve) {
 					// Ignore query string (NOOP)
-				} else if (ops.qs?.filter != undefined) {
+				} else if (hasFilter) {
 					// Filter specific query params
 					const filterArgs = Array.isArray(ops.qs.filter) ? ops.qs.filter : [ops.qs.filter];
 
@@ -170,7 +171,7 @@ export class CheckRedirect extends databases.redirects.rule {
 	 */
 	async searchStaticRedirect(searchObj) {
 		// Build search conditions
-		const { path, t, qs, qString } = searchObj;
+		const { path, t, si, qs, qString } = searchObj;
 		const conditions = buildSearchConditions({
 			...searchObj,
 			isRegexSearch: false,
@@ -178,7 +179,7 @@ export class CheckRedirect extends databases.redirects.rule {
 		});
 
 		// Search DB for matching rules
-		const searchResults = await databases.redirects.rule.search({
+		const searchResults = await databases.redirects.Rule.search({
 			conditions: conditions,
 		});
 		const results = await Array.fromAsync(searchResults);
@@ -191,17 +192,25 @@ export class CheckRedirect extends databases.redirects.rule {
 		}
 
 		if (filtered.length > 1) {
-			if (qs === 'i') {
-				// Select row with path matching (ignore query string)
-				const row = filtered.filter((row) => row.path === path);
-				if (row) {
-					return row[0];
-				}
-			} else {
-				// Select row with path and query string matching
-				const row = filtered.filter((row) => row.path === path + qString);
-				if (row) {
-					return row[0];
+			const altPath = path.endsWith('/') ? path.slice(0, path.length - 1) : path + '/';
+			const paths = [path];
+			if (si) paths.push(altPath);
+
+			// Try to find exact match based on query string behavior
+			// Check alternative paths if slash-insensitive
+			for (const p of paths) {
+				if (qs === 'i') {
+					// Select row with path matching (ignore query string)
+					const row = filtered.filter((row) => row.path === p);
+					if (row) {
+						return row[0];
+					}
+				} else {
+					// Select row with path and query string matching
+					const row = filtered.filter((row) => row.path === p + qString);
+					if (row) {
+						return row[0];
+					}
 				}
 			}
 		}
@@ -235,7 +244,7 @@ export class CheckRedirect extends databases.redirects.rule {
 		const conditions = buildSearchConditions({ ...searchObj, isRegexSearch: true, regexPrefix });
 
 		// Search DB for matching rules
-		const searchResults = await databases.redirects.rule.search({
+		const searchResults = await databases.redirects.Rule.search({
 			conditions: conditions,
 		});
 

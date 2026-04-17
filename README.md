@@ -1,8 +1,8 @@
-# Redirector Template
+# Harper Redirector Component
 
 ## Overview
 
-The Redirector is a Harper component built to handle large-scale redirect needs. It enhances the performance and scalability of existing redirector applications, supporting use cases that require hundreds of thousands to millions of redirects. See below [Performance](#performance-test-results) for test results.
+The Redirector is a Harper component built to handle large-scale redirect needs. It enhances the performance and scalability of existing redirector applications, supporting use cases that require hundreds of thousands to millions of redirects.
 
 ### What is Harper
 
@@ -33,9 +33,9 @@ The application records metrics associated with the redirect action.
 
 ## Getting Started
 
-1. `git clone https://github.com/HarperDB/template-redirector.git`
+1. `git clone https://github.com/HarperFast/template-redirector.git`
 2. `cd template-redirector`
-3. `harperdb run .`
+3. `harper run .`
 
 This assumes you have the Harper stack already [installed]([Install HarperDB | HarperDB](https://docs.harperdb.io/docs/deployments/install-harperdb)) globally.
 
@@ -45,7 +45,7 @@ This assumes you have the Harper stack already [installed]([Install HarperDB | H
 
 | Endpoint           | Description                                       |
 | ------------------ | ------------------------------------------------- |
-| `/redirect`        | Uploading CSV or JSON files with redriects        |
+| `/redirect`        | Uploading CSV or JSON files with redirects        |
 | `/checkredirect`   | Query the redirector for a redirect               |
 | `/redirectmetrics` | Redirector usage metrics from last 60 seconds     |
 | `/rule`            | Direct REST endpoint for the rule table           |
@@ -78,21 +78,21 @@ CSV format:
 
 Fields (See `rule` table below for more information):
 
-| Name         | Required | Description                                                                                                                                    |
-| ------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| utcStartTime | No       | Time in unix epoch seconds to start applying the rule                                                                                          |
-| utcEndTime   | No       | Time in unix epoch seconds to stop applying the rule                                                                                           |
-| path         | Yes      | The path to match on. This can be the path element of the URL or a full url. If it is the full URL the host will populate the host field below |
-| redirectURL  | Yes      | The path or URL to redirect to                                                                                                                 |
-| host         | No       | The host to match on as well as the path. If empty, this rule can apply to any host. See `ho` below                                            |
-| version      | No       | Defaults to the current active version. The version that applies to this rule. See the `version` table below                                   |
-| operations   | No       | See `operations` below under the `rule` table                                                                                                  |
-| statusCode   | Yes      | The status code to return with the redirect (302, 302, 307, etc)                                                                               |
-| regex        | No       | 1 == `path` is a regex. Default is `0`                                                                                                         |
+| Name           | Required | Description                                                                                                                                    |
+| -------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `utcStartTime` | No       | Time in unix epoch seconds to start applying the rule                                                                                          |
+| `utcEndTime`   | No       | Time in unix epoch seconds to stop applying the rule                                                                                           |
+| `path`         | Yes      | The path to match on. This can be the path element of the URL or a full url. If it is the full URL the host will populate the host field below |
+| `redirectURL`  | Yes      | The path or URL to redirect to                                                                                                                 |
+| `host`         | No       | The host to match on as well as the path. If empty, this rule can apply to any host. See `ho` below                                            |
+| `version`      | No       | Defaults to the current active version. The version that applies to this rule. See the `version` table below                                   |
+| `operations`   | No       | See `operations` below under the `rule` table                                                                                                  |
+| `statusCode`   | Yes      | The status code to return with the redirect (302, 302, 307, etc)                                                                               |
+| `regex`        | No       | 1 == `path` is a regex. Default is `0`                                                                                                         |
 
 Example file:
 
-```bash
+```csv
 utcStartTime,utcEndTime,path,redirectURL,host,version,operations,statusCode,regex
 ,,/oldpath,/newpath,,,,301,0
 1743120075,1743120135,/oldpath,/newpath,www.example.com,1,qs:perserve=1,302,0
@@ -145,15 +145,15 @@ GET /checkredirect?path=/your/path
 
 The full available parameters are:
 
-| name | type   | description                                                                                                                                                                   |
-| ---- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| path | String | The path portion of the redirect or the full url including scheme and hostname. If this is a full URL it overrides the `host` parameter if any                                |
-| h    | String | Host - The hostname to match on (optional)                                                                                                                                    |
-| v    | Int    | Version - The redirect version to match on (optional)                                                                                                                         |
-| ho   | Int    | hostOnly - a flag that indicates that when a hostname is used, and there is no match for that hostname, whether the global 'no hostname' entries should be checked (optional) |
-| t    | Int    | Time - Override the time to this epoch time for testing (optional)                                                                                                            |
-| qs   | String | Direction for handling a querystring in the path. `i` == ignore or `m` == match (default) (optional)                                                                          |
-| si   | Int    | Whether to ignore a terminating slash on a check: /dir and /dir/ will match /dir. 1 == on (default is 0 / off)                                                                |
+| name   | type   | description                                                                                                                                                                   |
+| ------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `path` | String | The path portion of the redirect or the full url including scheme and hostname. If this is a full URL it overrides the `host` parameter if any                                |
+| `h`    | String | Host - The hostname to match on (optional)                                                                                                                                    |
+| `v`    | Int    | Version - The redirect version to match on (optional)                                                                                                                         |
+| `ho`   | Int    | hostOnly - a flag that indicates that when a hostname is used, and there is no match for that hostname, whether the global 'no hostname' entries should be checked (optional) |
+| `t`    | Int    | Time - Override the time to this epoch time for testing (optional)                                                                                                            |
+| `qs`   | String | Direction for handling a querystring in the path. `i` == ignore or `m` == match (default) (optional)                                                                          |
+| `si`   | Int    | Whether to ignore a terminating slash on a check: /dir and /dir/ will match /dir. 1 == on (default is 0 / off)                                                                |
 
 For example, this query:
 
@@ -183,7 +183,7 @@ GET /checkdirect/https://www.example.com/page-name?key=val&arg=val2
 > - Path specific query string added to `x-query-string` header
 > - All other params will still go in the query string
 
-```
+```bash
 GET /checkdirect?path=/page-name&h=www.example.com
 ```
 
@@ -304,7 +304,7 @@ The `operation` field is intended to indicate special handling for the redirect.
 
 | Operation | Command  | Value  | Decription                                                |
 | --------- | -------- | ------ | --------------------------------------------------------- |
-| qs        | preserve | 0/1    | 1 == copy QS to redirect. 0 == do not copy QS to redirect |
+| `qs`      | preserve | 0/1    | 1 == copy QS to redirect. 0 == do not copy QS to redirect |
 |           | filter   | qs arg | Name of a qs arg to filter from the copy                  |
 
 `preserve` and `filter` are mutually exclusive. Use of `preserve` ignores `filter`:
@@ -424,37 +424,19 @@ DELETE /rule/?path==*
 
 ## Testing
 
-The file `test/redirector-test.js` has regression tests with the intention of covering all of that above API calls. Run them with:
+The file `tests/integration/integration.test.js` has regression tests with the intention of covering all of that above API calls. Run them with:
 
 ```bash
-node --test
+npm run test
 ```
 
 The test uses a `.env` file at the component root for configuration:
 
-| Field    | Description                                            |
-| -------- | ------------------------------------------------------ |
-| HOST     | The host to connect to                                 |
-| PORT     | The port to use for normal HTTP calls (443, 9926, etc) |
-| SCHEME   | http or https                                          |
-| AUTH     | Should HTTP Basic auth be sent? true/false             |
-| USERNAME | The username for basic auth                            |
-| PASSWORD | The password for basic auth                            |
-
-## Performance Test Results
-
-### Performance Thresholds
-
-Performance testing was conducted using k6 to determine maximum sustainable throughput for two redirect rule types with a p95 latency target of <100ms.
-
-## Results Summary
-
-| Rule   | Max Sustainable RPS | P95 Latency at Max RPS |
-| ------ | ------------------- | ---------------------- |
-| Static | 2,000               | 23.19ms                |
-| Regex  | 1,700               | 66.54ms                |
-
-**Key Findings:**
-
-- **Static Rules**: Successfully maintained p95 <100ms at maximum tested load of 2,000 RPS
-- **Regex Rules**: Threshold crossed at 1,900 RPS (132ms p95), max sustainable capacity is 1,700 RPS
+| Field      | Description                                            |
+| ---------- | ------------------------------------------------------ |
+| `HOST`     | The host to connect to                                 |
+| `PORT`     | The port to use for normal HTTP calls (443, 9926, etc) |
+| `SCHEME`   | http or https                                          |
+| `AUTH`     | Should HTTP Basic auth be sent? true/false             |
+| `USERNAME` | The username for basic auth                            |
+| `PASSWORD` | The password for basic auth                            |

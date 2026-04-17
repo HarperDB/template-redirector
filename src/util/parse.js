@@ -64,7 +64,7 @@ export const parseParams = (query, config) => {
 		if (query.get(key) !== undefined) {
 			// Convert booleans explicitly, otherwise use raw value
 			if (value.type === 'Bool') {
-				params[key] = query.get(key) == 1 ? true : false;
+				params[key] = parseInt(query.get(key), 10) === 1 ? true : false;
 			} else {
 				params[key] = query.get(key);
 			}
@@ -112,7 +112,7 @@ export const parseOperations = (ops) => {
 				const [key, value] = param.split('=');
 
 				// Merge repeated params into arrays
-				if (opdata[name].hasOwnProperty(key)) {
+				if (Object.hasOwn(opdata[name], key)) {
 					if (Array.isArray(opdata[name][key])) {
 						opdata[name][key].push(value);
 					} else {

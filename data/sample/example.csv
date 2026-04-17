@@ -16,7 +16,7 @@ utcStartTime,utcEndTime,path,host,version,redirectURL,operations,statusCode,rege
 ,,/p/dresses/,,1,/shop/dresses/v1,,301
 ,,/p/shirts/help/iron/,,0,/info/care?id=1234,,301
 ,,https://www.example.com/p/shirts/help/iron/full,,0,https://www.another.com/info/care/full?id=1234,,301
-,,https://www.example.com/p/shirts/help/iron/full2,,0,//www.another.com/info/care/full?id=1234,,301
+,,https://www.example.com/p/shirts/help/iron/full2,,0,https://www.another.com/info/care/full?id=1234,,301
 ,,/p/fullurl/,,0,https://www.another.com/info/care/full?id=1234,,301
 ,,/dir1/file,,0,/dir2/other,,301
 ,,/dir1/file?foo=bar,,0,/dir2/other?boo=bat,,301
