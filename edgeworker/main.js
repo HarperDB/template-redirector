@@ -8,7 +8,7 @@ export async function onClientRequest(request) {
 		const url = `https://${request.host}/checkredirect?h=${request.host}&path=${request.path}`;
 
 		const requestHeaders = {
-			Authorization: `Basic ${HARPER_TOKEN}`,
+			'Authorization': `Basic ${HARPER_TOKEN}`,
 			'Content-Type': 'application/json',
 			'X-Query-String': request.query,
 		};

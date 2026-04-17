@@ -58,11 +58,11 @@ export const buildSearchConditions = (searchObj) => {
 				conditions: [
 					...versionConditions,
 					{
-						operator: 'or',
+						operator: hostConditions.length > 1 ? 'or' : undefined,
 						conditions: hostConditions,
 					},
 					{
-						operator: 'or',
+						operator: pathConditions.length > 1 ? 'or' : undefined,
 						conditions: pathConditions,
 					},
 				],

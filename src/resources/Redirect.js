@@ -2,8 +2,8 @@ import { performance } from 'node:perf_hooks';
 import Papa from 'papaparse';
 import { allowedUserRoles, USE_STATIC_ONLY } from '../util/constants.js';
 import { parseURLPath } from '../util/parse.js';
-import { getCurrentVersion } from './get_current_config.js';
-import { getRegexPrefix } from './regex_helpers.js';
+import { getCurrentVersion } from '../util/getCurrentConfig.js';
+import { getRegexPrefix } from '../util/regexHelpers.js';
 
 /**
  * Class for the /redirect endpoint custom functionality.
@@ -14,7 +14,7 @@ import { getRegexPrefix } from './regex_helpers.js';
  * OPTIONS:
  *  - USE_STATIC_ONLY: If true, only static paths are processed (no regex).
  */
-export class Redirect extends databases.redirects.rule {
+export default class Redirect extends databases.redirects.Rule {
 	// Write validated redirects to the database in batches
 	static PROCESS_BATCH_SIZE = 100;
 
@@ -39,7 +39,7 @@ export class Redirect extends databases.redirects.rule {
 		const t1 = performance.now();
 		let json;
 
-		if (data.contentType == 'text/csv') {
+		if (data.contentType === 'text/csv') {
 			json = Papa.parse(data.data, {
 				header: true,
 				skipEmptyLines: true,
@@ -135,7 +135,7 @@ export class Redirect extends databases.redirects.rule {
 				};
 
 				let hasDuplicates = false;
-				for await (const _ of databases.redirects.rule.search(dupQuery)) {
+				for await (const _ of databases.redirects.Rule.search(dupQuery)) {
 					hasDuplicates = true;
 					skipped.push({ reason: 'Duplicate record or would create redirect chain/loop', item });
 					break;
@@ -257,7 +257,7 @@ export class Redirect extends databases.redirects.rule {
 		if (batch.length === 0) return;
 
 		const t1 = performance.now();
-		const posts = batch.map(({ postObject }) => databases.redirects.rule.post(postObject));
+		const posts = batch.map(({ postObject }) => databases.redirects.Rule.post(postObject));
 
 		await Promise.allSettled(posts);
 		const t2 = performance.now();

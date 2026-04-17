@@ -10,7 +10,7 @@ const { hdb_analytics } = databases.system;
  * - Query the analytics store for recent "redirect" metric events.
  * - Restrict results to a short rolling time window (last 60 seconds).
  */
-export class RedirectMetrics extends Resource {
+export default class RedirectMetrics extends Resource {
 	/**
 	 * Checks whether a user is allowed to read redirect rules.
 	 * @param {Object} user - The user object containing role information.

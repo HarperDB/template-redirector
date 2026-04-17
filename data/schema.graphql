@@ -1,5 +1,5 @@
 # Redirect rule table
-type rule @table(database: "redirects") @sealed @export {
+type Rule @table(database: "redirects") @sealed @export {
 	# Unique identifier for the rule
 	id: Any @primaryKey
 
@@ -35,22 +35,22 @@ type rule @table(database: "redirects") @sealed @export {
 }
 
 # Table for managing host entries to apply to specific redirects
-type hosts @table(database: "redirects") @sealed @export {
-	# Unique identifier for the host entry
-	id: Any @primaryKey
+type Hosts @table(database: "redirects") @sealed @export {
+	# The host name for the redirect
+	host: String @primaryKey
 
-	# The host name for the redirect (optional)
-	host: String @indexed
-
-	# The path to redirect to (indexed for faster lookups)
-	hostOnly: Boolean
+	# Whether redirects for this host should only apply to exact host matches
+	hostOnly: Boolean!
 }
 
 # Table for managing active version for redirects
-type version @table(database: "redirects") @sealed @export {
-	# Unique identifier for the host entry
+type Version @table(database: "redirects") @sealed @export {
+	# Unique identifier for the version entry
 	id: Any @primaryKey
 
-	# The host name for the redirect (optional)
-	activeVersion: Int @indexed
+	# Hostname for which this version applies (optional, defaults to all hosts)
+	hostname: String @indexed
+
+	# Current active version number
+	activeVersion: Int! @indexed
 }
