@@ -171,7 +171,7 @@ export default class CheckRedirect extends databases.redirects.Rule {
 	 */
 	async searchStaticRedirect(searchObj) {
 		// Build search conditions
-		const { path, t, si, qs, qString } = searchObj;
+		const { path, host, t, si, qs, qString } = searchObj;
 		const conditions = buildSearchConditions({
 			...searchObj,
 			isRegexSearch: false,
@@ -187,11 +187,17 @@ export default class CheckRedirect extends databases.redirects.Rule {
 		// Apply filters for time validity
 		const filtered = results.filter((row) => isRedirectValid(row, t));
 
-		if (filtered.length === 1) {
-			return filtered[0];
-		}
+		if (filtered.length === 0) return null;
 
-		if (filtered.length > 1) {
+		// Prefer exact host matches, fall back to empty host matches
+		const exactHostMatches = filtered.filter((row) => row.host === host);
+		const emptyHostMatches = filtered.filter((row) => !row.host);
+
+		// Find best match within a candidate set based on path/query string
+		const findBestMatch = (candidates) => {
+			if (candidates.length === 0) return null;
+			if (candidates.length === 1) return candidates[0];
+
 			const altPath = path.endsWith('/') ? path.slice(0, path.length - 1) : path + '/';
 			const paths = [path];
 			if (si) paths.push(altPath);
@@ -201,21 +207,18 @@ export default class CheckRedirect extends databases.redirects.Rule {
 			for (const p of paths) {
 				if (qs === 'i') {
 					// Select row with path matching (ignore query string)
-					const row = filtered.filter((row) => row.path === p);
-					if (row) {
-						return row[0];
-					}
+					const row = candidates.filter((row) => row.path === p);
+					if (row.length > 0) return row[0];
 				} else {
 					// Select row with path and query string matching
-					const row = filtered.filter((row) => row.path === p + qString);
-					if (row) {
-						return row[0];
-					}
+					const row = candidates.filter((row) => row.path === p + qString);
+					if (row.length > 0) return row[0];
 				}
 			}
-		}
+			return null;
+		};
 
-		return null;
+		return findBestMatch(exactHostMatches) ?? findBestMatch(emptyHostMatches);
 	}
 
 	/**

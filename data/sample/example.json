@@ -385,7 +385,7 @@
 		{
 			"utcStartTime": "",
 			"utcEndTime": "",
-			"path": "^/dir77/apples/red/*",
+			"path": "/dir77/apples/red/*",
 			"host": "",
 			"version": "0",
 			"redirectURL": "/violets/blue",
