@@ -10,11 +10,11 @@
 	},
 	"prettier": "@harperdb/code-guidelines/prettier",
 	"scripts": {
-		"dev": "harperdb dev .",
-		"start": "harperdb run .",
+		"dev": "harper dev .",
+		"start": "harper run .",
 		"format": "prettier --write .",
 		"test": "npx vitest run  --config .github/config/vitest.config.js",
-		"postinstall": "npm link harperdb"
+		"postinstall": "npm link harper"
 	},
 	"dependencies": {
 		"papaparse": "5.5.3"
