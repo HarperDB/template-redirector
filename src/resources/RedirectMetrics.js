@@ -22,17 +22,19 @@ export default class RedirectMetrics extends Resource {
 
 	/**
 	 * Retrieves redirect metrics form the last 60 seconds.
+	 * @param {Object} target - Target identifier with query parameters.
+	 * @param {Object} context - Request context.
 	 * @returns {Promise<Array<Object>>} - An array of metric objects matching the query.
 	 */
-	async get(query) {
-		logger.info(`Retrieving redirect metrics for ${query}`);
+	static async get(target, context) {
+		logger.info(`Retrieving redirect metrics for ${target}`);
 
 		// Compute rolling time window: [now - 60s, now]
 		const now = Date.now();
 		const windowMs = 60 * 1000;
 		const range = [now - windowMs, now];
 
-		if (!query || query.get('type') === 'redirect') {
+		if (!target || target.get('type') === 'redirect') {
 			logger.info('Retrieving redirect metrics from the last 60 seconds');
 
 			return await hdb_analytics.search({
@@ -43,7 +45,7 @@ export default class RedirectMetrics extends Resource {
 			});
 		}
 
-		const timingType = query.get('type');
+		const timingType = target.get('type');
 		logger.info(`Retrieving ${timingType} metrics for last 60 seconds`);
 		const conditions = [{ attribute: 'id', value: range[0], comparator: 'greater_than_equal' }];
 

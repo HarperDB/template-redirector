@@ -32,23 +32,25 @@ export default class Redirect extends databases.redirects.Rule {
 	 * - CSV input is parsed via Papa Parse.
 	 * - JSON input is assumed to already contain redirect objects.
 	 *
-	 * @param {Object} data - Request data containing contentType and raw data (see data/example.json for format).
+	 * @param {Object} target - Target identifier
+	 * @param {Promise<Object>} data - Request data containing contentType and raw data (see data/example.json for format).
 	 * @returns {Promise<Object>} - Summary of import with success message and skipped items.
 	 */
-	async post(data) {
+	static async post(target, data) {
+		const body = await data;
 		const t1 = performance.now();
 		let json;
 
-		if (data.contentType === 'text/csv') {
-			json = Papa.parse(data.data, {
+		if (body.contentType === 'text/csv') {
+			json = Papa.parse(body.data, {
 				header: true,
 				skipEmptyLines: true,
 			});
 		} else {
-			json = data;
+			json = body;
 		}
 
-		const results = await this.processRedirects(json.data);
+		const results = await Redirect.processRedirects(json.data);
 
 		const t2 = performance.now();
 		server.recordAnalytics(t2 - t1, 'redirect-upload-timing', USE_STATIC_ONLY);
@@ -66,8 +68,8 @@ export default class Redirect extends databases.redirects.Rule {
 	 * @param {Array<Object>} redirects - Redirect rules from CSV or JSON.
 	 * @returns {Promise<Object>} - Processing results (success count and skipped list).
 	 */
-	async processRedirects(redirects) {
-		const batchSize = this.constructor.PROCESS_BATCH_SIZE;
+	static async processRedirects(redirects) {
+		const batchSize = Redirect.PROCESS_BATCH_SIZE;
 		logger.info(`Processing ${redirects.length} redirects (batch size: ${batchSize})`);
 
 		let success = 0;
@@ -83,7 +85,7 @@ export default class Redirect extends databases.redirects.Rule {
 		for (const item of redirects) {
 			const t1 = performance.now();
 			try {
-				if (!this.validateRedirect(item, skipped)) continue;
+				if (!Redirect.validateRedirect(item, skipped)) continue;
 
 				item.regex = item.regex ? Number(item.regex) === 1 : false;
 				if (item.regex && USE_STATIC_ONLY) {
@@ -143,7 +145,7 @@ export default class Redirect extends databases.redirects.Rule {
 
 				if (hasDuplicates) continue;
 
-				const postObject = this.createPostObject(item);
+				const postObject = Redirect.createPostObject(item);
 				batch.push({ postObject });
 				success++;
 
@@ -151,7 +153,7 @@ export default class Redirect extends databases.redirects.Rule {
 				server.recordAnalytics(t2 - t1, 'redirect-upload-process-timing', item.regex);
 
 				if (batch.length >= batchSize) {
-					await this.flushBatch(batch);
+					await Redirect.flushBatch(batch);
 				}
 			} catch (e) {
 				skipped.push({ reason: e.message, item });
@@ -159,7 +161,7 @@ export default class Redirect extends databases.redirects.Rule {
 		}
 
 		if (batch.length > 0) {
-			await this.flushBatch(batch);
+			await Redirect.flushBatch(batch);
 		}
 
 		return { success, skipped };
@@ -173,7 +175,7 @@ export default class Redirect extends databases.redirects.Rule {
 	 * @param {Array<Object>} skipped - Collector array for skipped records.
 	 * @returns {boolean} - True if valid, false otherwise.
 	 */
-	validateRedirect(item, skipped) {
+	static validateRedirect(item, skipped) {
 		if (!item.path) {
 			skipped.push({ reason: 'missing path', item });
 			return false;
@@ -200,7 +202,7 @@ export default class Redirect extends databases.redirects.Rule {
 	 * @param {Object} item - Redirect definition from CSV/JSON input.
 	 * @returns {Object} - DB ready redirect object.
 	 */
-	createPostObject(item) {
+	static createPostObject(item) {
 		let start = parseInt(item.utcStartTime);
 		if (isNaN(start)) {
 			start = undefined;
@@ -253,7 +255,7 @@ export default class Redirect extends databases.redirects.Rule {
 	 * @param {Array<Object>} batch - The batch of redirect rules to flush.
 	 * @returns {Promise<void>}
 	 */
-	async flushBatch(batch) {
+	static async flushBatch(batch) {
 		if (batch.length === 0) return;
 
 		const t1 = performance.now();
