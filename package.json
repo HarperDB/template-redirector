@@ -18,7 +18,7 @@
 		"postinstall": "npm link harper"
 	},
 	"dependencies": {
-		"harper": "^5.0.11",
+		"harper": "^5.0.21",
 		"papaparse": "5.5.3"
 	},
 	"devDependencies": {
