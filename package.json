@@ -21,11 +21,11 @@
 	},
 	"devDependencies": {
 		"@harperdb/code-guidelines": "0.0.6",
-		"@vitest/coverage-v8": "4.0.18",
+		"@vitest/coverage-v8": "4.1.8",
 		"dotenv": "17.2.1",
 		"prettier": "3.8.1",
 		"supertest": "7.2.2",
-		"vitest": "4.0.18"
+		"vitest": "4.1.8"
 	},
 	"license": "Apache-2.0"
 }
