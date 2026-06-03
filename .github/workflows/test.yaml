@@ -1,0 +1,87 @@
+name: Test Suite
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      HDB_VERSION:
+        description: Harper Version (latest, 5.0.21, etc)
+        type: string
+        required: true
+        default: latest
+      NODE_VERSION:
+        description: Node.js Version (lts/*, 20, 22, etc)
+        type: string
+        required: true
+        default: lts/*
+
+jobs:
+  test:
+    name: Run integration tests
+    runs-on: ubuntu-latest
+
+    env:
+      HDB_VERSION: ${{ github.event.inputs.HDB_VERSION || 'latest' }}
+      NODE_VERSION: ${{ github.event.inputs.NODE_VERSION || 'lts/*' }}
+      # Credentials used to install Harper and authenticate the test requests.
+      HDB_ADMIN_USERNAME: HDB_ADMIN
+      HDB_ADMIN_PASSWORD: password
+      ROOTPATH: /tmp/hdb
+      # Component reads this from .env; false enables regex redirect rules
+      # which the test suite exercises.
+      USE_STATIC_ONLY: 'false'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Harper
+        shell: bash
+        run: |
+          chmod +x .github/scripts/install_harper.sh
+          ./.github/scripts/install_harper.sh "$HDB_VERSION" "$HDB_ADMIN_USERNAME" "$HDB_ADMIN_PASSWORD"
+
+      - name: Install dependencies
+        shell: bash
+        run: npm install
+
+      - name: Write component .env
+        shell: bash
+        run: echo "USE_STATIC_ONLY=$USE_STATIC_ONLY" > .env
+
+      - name: Start Harper component
+        shell: bash
+        run: |
+          nohup harperdb run . > /tmp/hdb_run.log 2>&1 &
+          echo "Waiting for Harper REST interface on :9926 ..."
+          for i in $(seq 1 60); do
+            code=$(curl -k -s -o /dev/null -w '%{http_code}' https://localhost:9926/ 2>/dev/null || true)
+            if [ -n "$code" ] && [ "$code" != "000" ]; then
+              echo "Harper is ready after ${i}s (HTTP $code)"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Harper did not become ready in time"
+          tail -50 /tmp/hdb_run.log
+          exit 1
+
+      - name: Run tests
+        shell: bash
+        env:
+          TEST_DOMAIN: https://localhost:9926
+          NODE_TLS_REJECT_UNAUTHORIZED: '0'
+        run: npm test
+
+      - name: Harper logs on failure
+        if: failure()
+        shell: bash
+        run: tail -100 /tmp/hdb_run.log || true
