@@ -14,8 +14,7 @@
 		"start": "harper run .",
 		"format": "prettier --write .",
 		"test": "npx vitest run  --config .github/config/vitest.config.js",
-		"test:integration": "HARPER_INTEGRATION_TEST_INSTALL_SCRIPT=./node_modules/harper/dist/bin/harper.js harper-integration-test-run --isolation=none \"integrationTests/**/*.test.ts\"",
-		"postinstall": "npm link harper"
+		"test:integration": "HARPER_INTEGRATION_TEST_INSTALL_SCRIPT=./node_modules/harper/dist/bin/harper.js harper-integration-test-run --isolation=none \"integrationTests/**/*.test.ts\""
 	},
 	"dependencies": {
 		"harper": "^5.0.21",
@@ -25,11 +24,11 @@
 		"@harperdb/code-guidelines": "0.0.6",
 		"@harperfast/integration-testing": "^0.3.1",
 		"@types/node": "^22.0.0",
-		"@vitest/coverage-v8": "4.0.18",
+		"@vitest/coverage-v8": "4.1.8",
 		"dotenv": "17.2.1",
 		"prettier": "3.8.1",
 		"supertest": "7.2.2",
-		"vitest": "4.0.18"
+		"vitest": "4.1.8"
 	},
 	"license": "Apache-2.0"
 }
