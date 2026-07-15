@@ -50,7 +50,7 @@ export default class Redirect extends databases.redirects.Rule {
 			json = body;
 		}
 
-		const results = await Redirect.processRedirects(json.data);
+		const results = await this.processRedirects(json.data);
 
 		const t2 = performance.now();
 		server.recordAnalytics(t2 - t1, 'redirect-upload-timing', USE_STATIC_ONLY);
@@ -69,7 +69,7 @@ export default class Redirect extends databases.redirects.Rule {
 	 * @returns {Promise<Object>} - Processing results (success count and skipped list).
 	 */
 	static async processRedirects(redirects) {
-		const batchSize = Redirect.PROCESS_BATCH_SIZE;
+		const batchSize = this.PROCESS_BATCH_SIZE;
 		logger.info(`Processing ${redirects.length} redirects (batch size: ${batchSize})`);
 
 		let success = 0;
@@ -85,7 +85,7 @@ export default class Redirect extends databases.redirects.Rule {
 		for (const item of redirects) {
 			const t1 = performance.now();
 			try {
-				if (!Redirect.validateRedirect(item, skipped)) continue;
+				if (!this.validateRedirect(item, skipped)) continue;
 
 				item.regex = item.regex ? Number(item.regex) === 1 : false;
 				if (item.regex && USE_STATIC_ONLY) {
@@ -145,7 +145,7 @@ export default class Redirect extends databases.redirects.Rule {
 
 				if (hasDuplicates) continue;
 
-				const postObject = Redirect.createPostObject(item);
+				const postObject = this.createPostObject(item);
 				batch.push({ postObject });
 				success++;
 
@@ -153,7 +153,7 @@ export default class Redirect extends databases.redirects.Rule {
 				server.recordAnalytics(t2 - t1, 'redirect-upload-process-timing', item.regex);
 
 				if (batch.length >= batchSize) {
-					await Redirect.flushBatch(batch);
+					await this.flushBatch(batch);
 				}
 			} catch (e) {
 				skipped.push({ reason: e.message, item });
@@ -161,7 +161,7 @@ export default class Redirect extends databases.redirects.Rule {
 		}
 
 		if (batch.length > 0) {
-			await Redirect.flushBatch(batch);
+			await this.flushBatch(batch);
 		}
 
 		return { success, skipped };

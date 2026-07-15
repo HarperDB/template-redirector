@@ -90,10 +90,10 @@ export default class CheckRedirect extends databases.redirects.Rule {
 			qString: qString !== '' ? qString.trim().toLowerCase() : '',
 		};
 
-		searchResult = await CheckRedirect.searchStaticRedirect(searchOptions);
+		searchResult = await this.searchStaticRedirect(searchOptions);
 		if (!searchResult && !USE_STATIC_ONLY) {
 			usedRegexSearch = true;
-			searchResult = await CheckRedirect.searchRegexRedirect(searchOptions);
+			searchResult = await this.searchRegexRedirect(searchOptions);
 		}
 
 		if (searchResult) {
