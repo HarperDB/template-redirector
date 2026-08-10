@@ -2,6 +2,7 @@ import { performance } from 'node:perf_hooks';
 import querystring from 'node:querystring';
 import { parseOperations, parseParams, parseQuery } from '../util/parse.js';
 import { allowedUserRoles, USE_STATIC_ONLY } from '../util/constants.js';
+import { forbidden, isAllowedRole } from '../util/auth.js';
 import { getCurrentVersion, getHostData, isRedirectValid } from '../util/getCurrentConfig.js';
 import { buildSearchConditions } from '../util/searchConditions.js';
 import { getRegexPrefix, processRegexBatch } from '../util/regexHelpers.js';
@@ -42,6 +43,11 @@ export default class CheckRedirect extends databases.redirects.Rule {
 	 * @returns {Promise<Object|null>} - Redirect rule with final URL, or null if not found.
 	 */
 	static async get(target, context) {
+		// The instance `allowRead` below only runs inside the base Resource transactional
+		// dispatch; this static shadows it, so REST reaches this method directly and the
+		// role gate must be applied explicitly here.
+		if (!isAllowedRole(context)) return forbidden();
+
 		const t1 = performance.now();
 		const queryPath = typeof target === 'string' ? target : target?.id;
 		let [host, path, qString] = parseQuery(queryPath, target, context);

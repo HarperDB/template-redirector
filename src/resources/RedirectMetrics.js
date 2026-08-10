@@ -1,4 +1,5 @@
 import { allowedUserRoles, USE_STATIC_ONLY } from '../util/constants.js';
+import { forbidden, isAllowedRole } from '../util/auth.js';
 
 // Harper system db for recording analytics
 const { hdb_analytics } = databases.system;
@@ -27,6 +28,11 @@ export default class RedirectMetrics extends Resource {
 	 * @returns {Promise<Array<Object>>} - An array of metric objects matching the query.
 	 */
 	static async get(target, context) {
+		// The instance `allowRead` below only runs inside the base Resource transactional
+		// dispatch; this static shadows it, so REST reaches this method directly and the
+		// role gate must be applied explicitly here.
+		if (!isAllowedRole(context)) return forbidden();
+
 		logger.info(`Retrieving redirect metrics for ${target}`);
 
 		// Compute rolling time window: [now - 60s, now]

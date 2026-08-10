@@ -1,6 +1,7 @@
 import { performance } from 'node:perf_hooks';
 import Papa from 'papaparse';
 import { allowedUserRoles, USE_STATIC_ONLY } from '../util/constants.js';
+import { forbidden, isAllowedRole } from '../util/auth.js';
 import { parseURLPath } from '../util/parse.js';
 import { getCurrentVersion } from '../util/getCurrentConfig.js';
 import { getRegexPrefix } from '../util/regexHelpers.js';
@@ -34,9 +35,15 @@ export default class Redirect extends databases.redirects.Rule {
 	 *
 	 * @param {Object} target - Target identifier
 	 * @param {Promise<Object>} data - Request data containing contentType and raw data (see data/example.json for format).
+	 * @param {Object} context - Request context.
 	 * @returns {Promise<Object>} - Summary of import with success message and skipped items.
 	 */
-	static async post(target, data) {
+	static async post(target, data, context) {
+		// The instance `allowCreate` below only runs inside the base Resource transactional
+		// dispatch; this static shadows it, so REST reaches this method directly and the
+		// role gate must be applied explicitly here.
+		if (!isAllowedRole(context)) return forbidden();
+
 		const body = await data;
 		const t1 = performance.now();
 		let json;
