@@ -15,11 +15,14 @@ export const redirectmetrics = RedirectMetrics;
 export class Version extends databases.redirects.Version {
 	/**
 	 * Validates and creates a new version entry.
-	 * @param {object} data - Version object to create
+	 * @param {object} target - Target identifier
+	 * @param {Promise<object>} data - Version object to create
+	 * @param {object} context - Request context
 	 * @returns {object} - Response object with status and data
 	 */
-	async post(data) {
-		if (typeof data.activeVersion !== 'number' || data.activeVersion < 0) {
+	static async post(target, data, context) {
+		const body = await data;
+		if (typeof body.activeVersion !== 'number' || body.activeVersion < 0) {
 			return {
 				status: 400,
 				headers: { 'Content-Type': 'application/json' },
@@ -27,17 +30,19 @@ export class Version extends databases.redirects.Version {
 			};
 		}
 
-		return super.post(data);
+		return super.post(target, body, context);
 	}
 
 	/**
 	 * Validates and updates an existing version entry.
-	 * @param {object} data - Version object to update
-	 * @param {object} query - Query parameters for the update
+	 * @param {object} target - Target identifier
+	 * @param {Promise<object>} data - Version object to update
+	 * @param {object} context - Request context
 	 * @returns {object} - Response object with status and data
 	 */
-	async put(data, query) {
-		if (typeof data.activeVersion !== 'number' || data.activeVersion < 0) {
+	static async put(target, data, context) {
+		const body = await data;
+		if (typeof body.activeVersion !== 'number' || body.activeVersion < 0) {
 			return {
 				status: 400,
 				headers: { 'Content-Type': 'application/json' },
@@ -45,17 +50,19 @@ export class Version extends databases.redirects.Version {
 			};
 		}
 
-		return super.put(data, query);
+		return super.put(target, body, context);
 	}
 
 	/**
 	 * Validates and updates an existing version entry.
-	 * @param {object} data - Version object to update
-	 * @param {object} query - Query parameters for the update
+	 * @param {object} target - Target identifier
+	 * @param {Promise<object>} data - Version object to update
+	 * @param {object} context - Request context
 	 * @returns {object} - Response object with status and data
 	 */
-	async patch(data, query) {
-		if (typeof data.activeVersion !== 'number' || data.activeVersion < 0) {
+	static async patch(target, data, context) {
+		const body = await data;
+		if (typeof body.activeVersion !== 'number' || body.activeVersion < 0) {
 			return {
 				status: 400,
 				headers: { 'Content-Type': 'application/json' },
@@ -63,6 +70,6 @@ export class Version extends databases.redirects.Version {
 			};
 		}
 
-		return super.patch(data, query);
+		return super.patch(target, body, context);
 	}
 }

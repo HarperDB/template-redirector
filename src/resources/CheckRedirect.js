@@ -2,6 +2,7 @@ import { performance } from 'node:perf_hooks';
 import querystring from 'node:querystring';
 import { parseOperations, parseParams, parseQuery } from '../util/parse.js';
 import { allowedUserRoles, USE_STATIC_ONLY } from '../util/constants.js';
+import { forbidden, isAllowedRole } from '../util/auth.js';
 import { getCurrentVersion, getHostData, isRedirectValid } from '../util/getCurrentConfig.js';
 import { buildSearchConditions } from '../util/searchConditions.js';
 import { getRegexPrefix, processRegexBatch } from '../util/regexHelpers.js';
@@ -37,14 +38,19 @@ export default class CheckRedirect extends databases.redirects.Rule {
 	 * Applies query string operations (preserve, ignore, filter) if configured.
 	 * Records analytics if a redirect is found.
 	 *
-	 * @param {Object} query - Request query parameters.
+	 * @param {Object} target - Target identifier (path or object with id).
+	 * @param {Object} context - Request context.
 	 * @returns {Promise<Object|null>} - Redirect rule with final URL, or null if not found.
 	 */
-	async get(query) {
+	static async get(target, context) {
+		// The instance `allowRead` below only runs inside the base Resource transactional
+		// dispatch; this static shadows it, so REST reaches this method directly and the
+		// role gate must be applied explicitly here.
+		if (!isAllowedRole(context)) return forbidden();
+
 		const t1 = performance.now();
-		const context = this.getContext();
-		const queryPath = this.getId();
-		let [host, path, qString] = parseQuery(queryPath, query, context);
+		const queryPath = typeof target === 'string' ? target : target?.id;
+		let [host, path, qString] = parseQuery(queryPath, target, context);
 		logger.info('Checking redirect for query:', { host, path, qString });
 
 		if (path === '') {
@@ -62,7 +68,7 @@ export default class CheckRedirect extends databases.redirects.Rule {
 		};
 
 		// Parse params with defaults
-		const params = parseParams(query, paramsConfig);
+		const params = parseParams(target, paramsConfig);
 		const qs = params.qs; // 'i' ignore or defaults to match ('m')
 		const version = params.v || (await getCurrentVersion(host));
 		const t = params.t;
@@ -169,7 +175,7 @@ export default class CheckRedirect extends databases.redirects.Rule {
 	 * @param {string} searchObj.qString - The query string value.
 	 * @returns {Promise<Object|null>} A single matched redirect rule or `null` if none.
 	 */
-	async searchStaticRedirect(searchObj) {
+	static async searchStaticRedirect(searchObj) {
 		// Build search conditions
 		const { path, host, t, si, qs, qString } = searchObj;
 		const conditions = buildSearchConditions({
@@ -238,7 +244,7 @@ export default class CheckRedirect extends databases.redirects.Rule {
 	 * @param {string} searchObj.qString - The query string value.
 	 * @returns {Promise<Object|null>} A single matched redirect rule or `null` if none.
 	 */
-	async searchRegexRedirect(searchObj) {
+	static async searchRegexRedirect(searchObj) {
 		const BATCH_SIZE = 100;
 
 		// Build search conditions

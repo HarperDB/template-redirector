@@ -10,17 +10,20 @@
 	},
 	"prettier": "@harperdb/code-guidelines/prettier",
 	"scripts": {
-		"dev": "harperdb dev .",
-		"start": "harperdb run .",
+		"dev": "harper dev .",
+		"start": "harper run .",
 		"format": "prettier --write .",
 		"test": "npx vitest run  --config .github/config/vitest.config.js",
-		"postinstall": "npm link harperdb"
+		"test:integration": "HARPER_INTEGRATION_TEST_INSTALL_SCRIPT=./node_modules/harper/dist/bin/harper.js harper-integration-test-run --isolation=none \"integrationTests/**/*.test.ts\""
 	},
 	"dependencies": {
+		"harper": "^5.2.1",
 		"papaparse": "5.5.3"
 	},
 	"devDependencies": {
 		"@harperdb/code-guidelines": "0.0.6",
+		"@harperfast/integration-testing": "^0.3.1",
+		"@types/node": "^22.0.0",
 		"@vitest/coverage-v8": "4.1.8",
 		"dotenv": "17.2.1",
 		"prettier": "3.8.1",

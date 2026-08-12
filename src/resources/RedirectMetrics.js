@@ -1,4 +1,5 @@
 import { allowedUserRoles, USE_STATIC_ONLY } from '../util/constants.js';
+import { forbidden, isAllowedRole } from '../util/auth.js';
 
 // Harper system db for recording analytics
 const { hdb_analytics } = databases.system;
@@ -22,17 +23,24 @@ export default class RedirectMetrics extends Resource {
 
 	/**
 	 * Retrieves redirect metrics form the last 60 seconds.
+	 * @param {Object} target - Target identifier with query parameters.
+	 * @param {Object} context - Request context.
 	 * @returns {Promise<Array<Object>>} - An array of metric objects matching the query.
 	 */
-	async get(query) {
-		logger.info(`Retrieving redirect metrics for ${query}`);
+	static async get(target, context) {
+		// The instance `allowRead` below only runs inside the base Resource transactional
+		// dispatch; this static shadows it, so REST reaches this method directly and the
+		// role gate must be applied explicitly here.
+		if (!isAllowedRole(context)) return forbidden();
+
+		logger.info(`Retrieving redirect metrics for ${target}`);
 
 		// Compute rolling time window: [now - 60s, now]
 		const now = Date.now();
 		const windowMs = 60 * 1000;
 		const range = [now - windowMs, now];
 
-		if (!query || query.get('type') === 'redirect') {
+		if (!target || target.get('type') === 'redirect') {
 			logger.info('Retrieving redirect metrics from the last 60 seconds');
 
 			return await hdb_analytics.search({
@@ -43,7 +51,7 @@ export default class RedirectMetrics extends Resource {
 			});
 		}
 
-		const timingType = query.get('type');
+		const timingType = target.get('type');
 		logger.info(`Retrieving ${timingType} metrics for last 60 seconds`);
 		const conditions = [{ attribute: 'id', value: range[0], comparator: 'greater_than_equal' }];
 

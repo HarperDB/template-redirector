@@ -1,6 +1,7 @@
 import { performance } from 'node:perf_hooks';
 import Papa from 'papaparse';
 import { allowedUserRoles, USE_STATIC_ONLY } from '../util/constants.js';
+import { forbidden, isAllowedRole } from '../util/auth.js';
 import { parseURLPath } from '../util/parse.js';
 import { getCurrentVersion } from '../util/getCurrentConfig.js';
 import { getRegexPrefix } from '../util/regexHelpers.js';
@@ -32,20 +33,28 @@ export default class Redirect extends databases.redirects.Rule {
 	 * - CSV input is parsed via Papa Parse.
 	 * - JSON input is assumed to already contain redirect objects.
 	 *
-	 * @param {Object} data - Request data containing contentType and raw data (see data/example.json for format).
+	 * @param {Object} target - Target identifier
+	 * @param {Promise<Object>} data - Request data containing contentType and raw data (see data/example.json for format).
+	 * @param {Object} context - Request context.
 	 * @returns {Promise<Object>} - Summary of import with success message and skipped items.
 	 */
-	async post(data) {
+	static async post(target, data, context) {
+		// The instance `allowCreate` below only runs inside the base Resource transactional
+		// dispatch; this static shadows it, so REST reaches this method directly and the
+		// role gate must be applied explicitly here.
+		if (!isAllowedRole(context)) return forbidden();
+
+		const body = await data;
 		const t1 = performance.now();
 		let json;
 
-		if (data.contentType === 'text/csv') {
-			json = Papa.parse(data.data, {
+		if (body.contentType === 'text/csv') {
+			json = Papa.parse(body.data, {
 				header: true,
 				skipEmptyLines: true,
 			});
 		} else {
-			json = data;
+			json = body;
 		}
 
 		const results = await this.processRedirects(json.data);
@@ -66,8 +75,8 @@ export default class Redirect extends databases.redirects.Rule {
 	 * @param {Array<Object>} redirects - Redirect rules from CSV or JSON.
 	 * @returns {Promise<Object>} - Processing results (success count and skipped list).
 	 */
-	async processRedirects(redirects) {
-		const batchSize = this.constructor.PROCESS_BATCH_SIZE;
+	static async processRedirects(redirects) {
+		const batchSize = this.PROCESS_BATCH_SIZE;
 		logger.info(`Processing ${redirects.length} redirects (batch size: ${batchSize})`);
 
 		let success = 0;
@@ -173,7 +182,7 @@ export default class Redirect extends databases.redirects.Rule {
 	 * @param {Array<Object>} skipped - Collector array for skipped records.
 	 * @returns {boolean} - True if valid, false otherwise.
 	 */
-	validateRedirect(item, skipped) {
+	static validateRedirect(item, skipped) {
 		if (!item.path) {
 			skipped.push({ reason: 'missing path', item });
 			return false;
@@ -200,7 +209,7 @@ export default class Redirect extends databases.redirects.Rule {
 	 * @param {Object} item - Redirect definition from CSV/JSON input.
 	 * @returns {Object} - DB ready redirect object.
 	 */
-	createPostObject(item) {
+	static createPostObject(item) {
 		let start = parseInt(item.utcStartTime);
 		if (isNaN(start)) {
 			start = undefined;
@@ -253,7 +262,7 @@ export default class Redirect extends databases.redirects.Rule {
 	 * @param {Array<Object>} batch - The batch of redirect rules to flush.
 	 * @returns {Promise<void>}
 	 */
-	async flushBatch(batch) {
+	static async flushBatch(batch) {
 		if (batch.length === 0) return;
 
 		const t1 = performance.now();
